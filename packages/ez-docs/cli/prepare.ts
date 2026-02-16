@@ -64,6 +64,38 @@ function getLastSyncedVersion(projectRoot: string): string | null {
   return null;
 }
 
+/** 列出目录下所有文件的相对路径（排除 globals.css，与 copyAppDir 保持一致） */
+function listFiles(dir: string): string[] {
+  if (!fs.existsSync(dir)) return [];
+  const files: string[] = [];
+  const walk = (d: string) => {
+    for (const entry of fs.readdirSync(d, { withFileTypes: true })) {
+      const full = path.join(d, entry.name);
+      if (entry.isDirectory()) {
+        walk(full);
+      } else if (entry.name !== "globals.css") {
+        files.push(path.relative(dir, full));
+      }
+    }
+  };
+  walk(dir);
+  return files.sort();
+}
+
+/** 检查源目录和目标目录的文件内容是否一致 */
+function hasContentChanged(srcDir: string, destDir: string): boolean {
+  const srcFiles = listFiles(srcDir);
+  const destFiles = listFiles(destDir);
+  if (srcFiles.length !== destFiles.length) return true;
+  for (let i = 0; i < srcFiles.length; i++) {
+    if (srcFiles[i] !== destFiles[i]) return true;
+    const srcContent = fs.readFileSync(path.join(srcDir, srcFiles[i]));
+    const destContent = fs.readFileSync(path.join(destDir, destFiles[i]));
+    if (!srcContent.equals(destContent)) return true;
+  }
+  return false;
+}
+
 /** 写入同步版本号 */
 function writeSyncedVersion(projectRoot: string, version: string): void {
   const ezdocDir = path.join(projectRoot, ".ezdoc");
@@ -125,11 +157,17 @@ export function prepareRoutes(
   const frameworkVersion = getFrameworkVersion(frameworkRoot);
   const lastVersion = getLastSyncedVersion(projectRoot);
 
-  // 版本检查
+  // 版本 + 内容检查
   const appDir = path.join(projectRoot, "src", "app");
+  const srcAppDir = path.join(frameworkRoot, "src", "app");
+  const versionChanged = lastVersion !== frameworkVersion;
+  const contentChanged =
+    fs.existsSync(appDir) &&
+    hasContentChanged(srcAppDir, appDir);
   const needsSync =
     options.force ||
-    lastVersion !== frameworkVersion ||
+    versionChanged ||
+    contentChanged ||
     !fs.existsSync(appDir);
 
   if (!needsSync) {
@@ -143,8 +181,7 @@ export function prepareRoutes(
     `${GRAY}[ez-docs]${RESET} 同步路由文件...`
   );
 
-  // 源目录
-  const srcAppDir = path.join(frameworkRoot, "src", "app");
+  // 源目录检查
   if (!fs.existsSync(srcAppDir)) {
     throw new Error(
       `[ez-docs] 框架路由目录不存在: ${srcAppDir}`

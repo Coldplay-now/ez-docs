@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { getDefaultLocale } from "@/lib/docs";
 
-export default function NotFound() {
-  const defaultLocale = getDefaultLocale();
+export default async function NotFound() {
+  const defaultLocale = await getDefaultLocale();
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center px-4 text-center">
       <h1 className="text-6xl font-bold text-foreground">404</h1>
