@@ -1,9 +1,10 @@
 import fs from "fs";
 import path from "path";
 import { execSync } from "child_process";
-import matter from "gray-matter";
+
 import { z } from "zod";
-import ezdocConfig from "@config";
+import type { ResolvedEzdocConfig } from "./config";
+import { getProjectRoot, loadConfig } from "./config-loader";
 
 // Re-export client-safe types and utilities
 export type { NavItem, NavGroup, TocItem, DocMeta, BreadcrumbItem } from "./nav-types";
@@ -15,34 +16,44 @@ import { scanMarkdownFiles } from "./file-scanner";
 // ─── locale 辅助 ────────────────────────────────────────────
 
 /** 获取默认 locale */
-export function getDefaultLocale(): string {
-  return ezdocConfig.i18n?.defaultLocale ?? "zh";
+export async function getDefaultLocale(): Promise<string> {
+  const config = await loadConfig();
+  return config.i18n.defaultLocale;
 }
 
 /** 获取所有 locale code 列表 */
-export function getAllLocales(): string[] {
-  const locales = ezdocConfig.i18n?.locales ?? [{ code: "zh", label: "中文" }];
-  return locales.map((l) => (typeof l === "string" ? l : l.code));
+export async function getAllLocales(): Promise<string[]> {
+  const config = await loadConfig();
+  return config.i18n.locales.map((l) => l.code);
 }
 
 // ─── 内部工具 ───────────────────────────────────────────────
 
 /** 从配置获取 docs 目录路径（locale 子目录） */
-function getDocsDir(locale: string): string {
-  const dir = ezdocConfig.docs?.dir ?? "docs";
-  return path.join(process.cwd(), dir, locale);
+function getDocsDir(locale: string, config: ResolvedEzdocConfig): string {
+  const dir = config.docs.dir;
+  return path.join(getProjectRoot(), dir, locale);
 }
 
 /** 从配置获取导航配置文件名 */
-function getNavFileName(): string {
-  return ezdocConfig.docs?.nav ?? "docs.json";
+function getNavFileName(config: ResolvedEzdocConfig): string {
+  return config.docs.nav;
 }
 
-/** 读取 markdown/mdx 文件的 frontmatter */
-function readFrontmatter(filePath: string): Record<string, unknown> {
+/** 读取 markdown/mdx 文件的 frontmatter（简易 YAML 解析，无需 gray-matter） */
+function readFrontmatter(filePath: string): Record<string, string> {
   try {
     const raw = fs.readFileSync(filePath, "utf-8");
-    const { data } = matter(raw);
+    const match = raw.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+    if (!match) return {};
+
+    const data: Record<string, string> = {};
+    for (const line of match[1].split("\n")) {
+      const kv = line.match(/^(\w+)\s*:\s*(.+)$/);
+      if (kv) {
+        data[kv[1]] = kv[2].replace(/^["']|["']$/g, "").trim();
+      }
+    }
     return data;
   } catch (err) {
     console.warn(
@@ -53,8 +64,8 @@ function readFrontmatter(filePath: string): Record<string, unknown> {
 }
 
 /** 根据 slug 解析出文件的绝对路径（尝试 .mdx 和 .md） */
-function resolveDocFile(slug: string, locale: string): string | null {
-  const docsDir = getDocsDir(locale);
+function resolveDocFile(slug: string, locale: string, config: ResolvedEzdocConfig): string | null {
+  const docsDir = getDocsDir(locale, config);
   const extensions = [".mdx", ".md"];
   for (const ext of extensions) {
     const filePath = path.join(docsDir, slug + ext);
@@ -64,8 +75,8 @@ function resolveDocFile(slug: string, locale: string): string | null {
 }
 
 /** 从文件系统读取 slug 对应的标题 */
-function getTitleForSlug(slug: string, locale: string): string {
-  const filePath = resolveDocFile(slug, locale);
+function getTitleForSlug(slug: string, locale: string, config: ResolvedEzdocConfig): string {
+  const filePath = resolveDocFile(slug, locale, config);
   if (!filePath) return slug;
   const fm = readFrontmatter(filePath);
   return (fm.title as string) || path.basename(slug);
@@ -90,9 +101,10 @@ const docsJsonSchema = z.object({
 });
 
 /** 校验 docs.json 并返回解析后的导航，供 CLI check 命令使用 */
-export function validateDocsJson(locale: string): { valid: boolean; warnings: string[] } {
-  const docsDir = getDocsDir(locale);
-  const navFile = path.join(docsDir, getNavFileName());
+export async function validateDocsJson(locale: string): Promise<{ valid: boolean; warnings: string[] }> {
+  const config = await loadConfig();
+  const docsDir = getDocsDir(locale, config);
+  const navFile = path.join(docsDir, getNavFileName(config));
   const warnings: string[] = [];
 
   if (!fs.existsSync(navFile)) {
@@ -143,7 +155,7 @@ export function validateDocsJson(locale: string): { valid: boolean; warnings: st
 
   // 检查文件存在性
   for (const p of paths) {
-    if (!resolveDocFile(p, locale)) {
+    if (!resolveDocFile(p, locale, config)) {
       warnings.push(`路径 "${p}" 对应的 .md/.mdx 文件不存在`);
     }
   }
@@ -157,21 +169,22 @@ export function validateDocsJson(locale: string): { valid: boolean; warnings: st
  * 获取导航结构。
  * 优先从 docs/{locale}/docs.json 读取，不存在则回退到目录扫描。
  */
-export function getNavigation(locale: string): NavGroup[] {
-  const docsDir = getDocsDir(locale);
-  const navFile = path.join(docsDir, getNavFileName());
+export async function getNavigation(locale: string): Promise<NavGroup[]> {
+  const config = await loadConfig();
+  const docsDir = getDocsDir(locale, config);
+  const navFile = path.join(docsDir, getNavFileName(config));
 
   // 1. 优先读取 docs.json
   if (fs.existsSync(navFile)) {
-    return parseNavFile(navFile, locale);
+    return parseNavFile(navFile, locale, config);
   }
 
   // 2. 回退：扫描目录
-  return buildNavFromDirectory(docsDir, locale);
+  return buildNavFromDirectory(docsDir, locale, config);
 }
 
 /** 解析 docs.json 导航配置文件 */
-function parseNavFile(navFile: string, locale: string): NavGroup[] {
+function parseNavFile(navFile: string, locale: string, config: ResolvedEzdocConfig): NavGroup[] {
   const raw = fs.readFileSync(navFile, "utf-8");
 
   let json: unknown;
@@ -193,20 +206,20 @@ function parseNavFile(navFile: string, locale: string): NavGroup[] {
     return [];
   }
 
-  return result.data.navigation.map((group) => resolveNavGroup(group, locale));
+  return result.data.navigation.map((group) => resolveNavGroup(group, locale, config));
 }
 
 /** Recursively resolve a navigation group, reading titles from frontmatter */
-function resolveNavGroup(raw: { group: string; pages: unknown[] }, locale: string): NavGroup {
+function resolveNavGroup(raw: { group: string; pages: unknown[] }, locale: string, config: ResolvedEzdocConfig): NavGroup {
   return {
     group: raw.group,
     pages: raw.pages.map((page): NavItem | NavGroup => {
       if (typeof page === "string") {
-        return { title: getTitleForSlug(page, locale), path: page };
+        return { title: getTitleForSlug(page, locale, config), path: page };
       }
       const obj = page as Record<string, unknown>;
       if ("group" in obj && "pages" in obj) {
-        return resolveNavGroup(obj as { group: string; pages: unknown[] }, locale);
+        return resolveNavGroup(obj as { group: string; pages: unknown[] }, locale, config);
       }
       return { title: (obj.title as string) ?? "", path: (obj.path as string) ?? "" };
     }),
@@ -214,7 +227,7 @@ function resolveNavGroup(raw: { group: string; pages: unknown[] }, locale: strin
 }
 
 /** 扫描目录构建导航（回退方案） */
-function buildNavFromDirectory(docsDir: string, locale: string): NavGroup[] {
+function buildNavFromDirectory(docsDir: string, locale: string, config: ResolvedEzdocConfig): NavGroup[] {
   const slugs = scanMarkdownFiles(docsDir);
   slugs.sort((a, b) => a.localeCompare(b));
 
@@ -228,7 +241,7 @@ function buildNavFromDirectory(docsDir: string, locale: string): NavGroup[] {
       groups.set(groupName, []);
     }
 
-    const filePath = resolveDocFile(slug, locale);
+    const filePath = resolveDocFile(slug, locale, config);
     const fm = filePath ? readFrontmatter(filePath) : {};
     const title = (fm.title as string) || path.basename(slug);
 
@@ -352,8 +365,9 @@ export function getBreadcrumbs(
 /**
  * 通过 git log 获取文档文件的最后修改时间（ISO 8601）。
  */
-export function getLastModified(slug: string, locale: string): string | null {
-  const filePath = resolveDocFile(slug, locale);
+export async function getLastModified(slug: string, locale: string): Promise<string | null> {
+  const config = await loadConfig();
+  const filePath = resolveDocFile(slug, locale, config);
   if (!filePath) return null;
   try {
     const timestamp = execSync(

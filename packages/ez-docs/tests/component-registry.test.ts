@@ -51,7 +51,9 @@ describe("buildResolveAlias", () => {
 
     const alias = buildResolveAlias(tmpDir);
     expect(alias).toHaveProperty("@/components/mdx/callout");
-    expect(alias["@/components/mdx/callout"]).toBe(path.join(mdxDir, "callout"));
+    // alias value 应为相对路径且包含扩展名（Turbopack 要求）
+    const value = alias["@/components/mdx/callout"];
+    expect(value).toMatch(/^\.\/.*mdx\/callout\.tsx$/);
   });
 
   it("应检测 layout override 文件", () => {
@@ -61,6 +63,8 @@ describe("buildResolveAlias", () => {
 
     const alias = buildResolveAlias(tmpDir);
     expect(alias).toHaveProperty("@/components/layout/footer");
+    const value = alias["@/components/layout/footer"];
+    expect(value).toMatch(/^\.\/.*layout\/footer\.tsx$/);
   });
 
   it("应忽略不在注册表中的文件", () => {
@@ -79,5 +83,7 @@ describe("buildResolveAlias", () => {
 
     const alias = buildResolveAlias(tmpDir);
     expect(alias).toHaveProperty("@/components/mdx/badge");
+    const value = alias["@/components/mdx/badge"];
+    expect(value).toMatch(/^\.\/.*mdx\/badge\.ts$/);
   });
 });

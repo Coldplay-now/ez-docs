@@ -5,12 +5,20 @@ description: 从安装到写出第一篇文档，5 分钟上手 ezdoc
 
 ## 安装
 
-克隆仓库并安装依赖：
+使用脚手架创建新项目：
 
 ```bash
-git clone https://github.com/Coldplay-now/ezdoc.git my-docs
+npx create-ez-docs my-docs
 cd my-docs
 pnpm install
+```
+
+或手动安装：
+
+```bash
+mkdir my-docs && cd my-docs
+pnpm init
+pnpm add ez-docs next react react-dom
 ```
 
 ## 项目结构
@@ -26,11 +34,10 @@ my-docs/
 │   └── en/                      # 英文文档
 │       ├── docs.json            # 英文导航配置
 │       └── getting-started.mdx
+├── overrides/                   # 组件覆盖目录（可选）
 ├── ezdoc.config.ts              # 项目配置文件
-├── .github/workflows/           # CI/CD 自动部署
-│   ├── deploy-pages.yml
-│   └── deploy-server.yml
-├── next.config.ts
+├── next.config.ts               # Next.js 配置（使用 withEzdoc）
+├── tsconfig.json                # TypeScript 配置（extends ez-docs）
 └── package.json
 ```
 
@@ -118,6 +125,16 @@ pnpm build        # 生成静态站点到 out/ 目录
 ```
 
 推送到 `main` 分支，GitHub Actions 自动构建并部署到 GitHub Pages。
+
+## 升级
+
+更新 ez-docs 到最新版本：
+
+```bash
+pnpm update ez-docs
+```
+
+CLI 会在下次 `dev` 或 `build` 时自动同步框架路由文件。
 
 详细的配置和部署说明请参阅：
 

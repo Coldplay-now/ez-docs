@@ -1,13 +1,13 @@
-import { defineConfig } from "./src/lib/config";
+import { defineConfig } from "ez-docs/config";
 
 export default defineConfig({
   site: {
     title: "ezdoc",
     description: "基于 Git 仓库的文档管理与渲染系统",
-    url: "https://coldplay-now.github.io/ezdoc",
+    url: "https://coldplay-now.github.io/ez-docs",
     favicon: "/favicon.ico",
     socials: {
-      github: "https://github.com/Coldplay-now/ezdoc",
+      github: "https://github.com/Coldplay-now/ez-docs",
     },
   },
 

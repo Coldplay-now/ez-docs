@@ -1,0 +1,10 @@
+{
+  "navigation": [
+    {
+      "group": "开始",
+      "pages": [
+        "getting-started"
+      ]
+    }
+  ]
+}

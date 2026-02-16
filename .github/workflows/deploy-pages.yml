@@ -26,7 +26,7 @@ jobs:
         run: |
           TARGET=$(node -e "
             const fs = require('fs');
-            const content = fs.readFileSync('ezdoc.config.ts', 'utf-8');
+            const content = fs.readFileSync('website/ezdoc.config.ts', 'utf-8');
             const match = content.match(/target:\s*['\"](\w+)['\"]/);
             console.log(match ? match[1] : 'github');
           ")
@@ -56,15 +56,15 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build
-        run: pnpm build
+      - name: Build website
+        run: pnpm --filter ez-docs-website build
         env:
-          EZDOC_BASE_PATH: /ezdoc
+          EZDOC_BASE_PATH: /ez-docs
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: out
+          path: website/out
 
   deploy:
     needs: build

@@ -14,17 +14,26 @@
   },
   "exports": {
     "./config": "./src/lib/config.ts",
+    "./next": "./src/next.ts",
     "./styles": "./src/styles/globals.css"
+  },
+  "files": [
+    "src/",
+    "cli/",
+    "tsconfig.base.json"
+  ],
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
-    "check": "tsc --noEmit"
+    "check": "tsc --noEmit",
+    "prepublishOnly": "pnpm run test"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "gray-matter": "^4.0.3",
     "katex": "^0.16.28",
     "lucide-react": "^0.564.0",
     "next-mdx-remote": "^6.0.0",

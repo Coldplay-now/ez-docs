@@ -8,7 +8,7 @@ All ezdoc configuration is centralized in the `ezdoc.config.ts` file at the proj
 ## Full Example
 
 ```ts
-import { defineConfig } from "./src/lib/config";
+import { defineConfig } from "ez-docs/config";
 
 export default defineConfig({
   site: {
@@ -279,6 +279,44 @@ See the [Component Overrides Guide](/docs/en/guide/component-overrides) for deta
 
 ---
 
+## search — Search Configuration
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `provider` | `"pagefind" \| "algolia"` | `"pagefind"` | Search engine |
+| `algolia` | `AlgoliaConfig` | — | Algolia configuration, required when provider is `algolia` |
+
+### AlgoliaConfig
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `appId` | `string` | Algolia Application ID |
+| `apiKey` | `string` | Search API Key (publicly accessible) |
+| `indexName` | `string` | Index name |
+
+```ts
+// Default: use Pagefind (index is auto-generated after build)
+search: {
+  provider: "pagefind",
+}
+
+// Use Algolia DocSearch
+search: {
+  provider: "algolia",
+  algolia: {
+    appId: "YOUR_APP_ID",
+    apiKey: "YOUR_SEARCH_API_KEY",
+    indexName: "your_index",
+  },
+}
+```
+
+<Callout type="info" title="Pagefind Available by Default">
+  Pagefind automatically generates a search index at build time — no extra configuration needed. Algolia integration is coming soon.
+</Callout>
+
+---
+
 ## Configuration Validation
 
 ezdoc uses Zod for runtime configuration validation. If the configuration is invalid, the terminal will output a clear error message:
@@ -309,6 +347,7 @@ When not explicitly configured, ezdoc uses the following default values:
   i18n: { defaultLocale: "zh", locales: [{ code: "zh", label: "中文" }] },
   deploy: { target: "github", basePath: "", output: "out" },
   overrides: { dir: "overrides" },
+  search: { provider: "pagefind" },
 }
 ```
 

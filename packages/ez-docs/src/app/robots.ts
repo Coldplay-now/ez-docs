@@ -1,10 +1,11 @@
 import type { MetadataRoute } from "next";
-import ezdocConfig from "@config";
+import { loadConfig } from "@/lib/config-loader";
 
 export const dynamic = "force-static";
 
-export default function robots(): MetadataRoute.Robots {
-  const baseUrl = ezdocConfig.site.url ?? "https://coldplay-now.github.io/ezdoc";
+export default async function robots(): Promise<MetadataRoute.Robots> {
+  const config = await loadConfig();
+  const baseUrl = config.site.url ?? "https://coldplay-now.github.io/ezdoc";
 
   return {
     rules: {

@@ -23,7 +23,7 @@ async function check() {
     const { validateDocsJson } = await import("../src/lib/docs");
 
     for (const locale of locales) {
-      const result = validateDocsJson(locale.code);
+      const result = await validateDocsJson(locale.code);
       if (!result.valid) {
         console.log(`  ${RED}✗${RESET} ${docsDir}/${locale.code}/${navFileName} 格式错误`);
         for (const w of result.warnings) {

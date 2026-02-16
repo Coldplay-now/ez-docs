@@ -12,6 +12,7 @@ import {
   RESET,
   RED,
 } from "./utils";
+import { prepareRoutes } from "./prepare";
 
 async function build() {
   const startTime = Date.now();
@@ -21,6 +22,9 @@ async function build() {
   const config = await loadAndValidateConfig();
   console.log(`${GREEN}[ezdoc]${RESET} 配置校验通过`);
 
+  // 1.5. 同步框架路由文件
+  prepareRoutes(process.cwd());
+
   // 2. 校验所有 locale 的 docs.json
   console.log(`${GRAY}[ezdoc]${RESET} 校验导航配置...`);
   const { validateDocsJson } = await import("../src/lib/docs");
@@ -28,7 +32,7 @@ async function build() {
 
   let hasError = false;
   for (const locale of locales) {
-    const result = validateDocsJson(locale.code);
+    const result = await validateDocsJson(locale.code);
     if (!result.valid) {
       console.error(`${RED}[ezdoc]${RESET} docs.json (${locale.code}) 校验失败:`);
       for (const w of result.warnings) {

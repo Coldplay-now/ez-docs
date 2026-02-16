@@ -61,6 +61,17 @@ const deploySchema = z.object({
   server: serverSchema.optional(),
 }).default(() => ({ target: "github" as const, basePath: "", output: "out" }));
 
+const algoliaSchema = z.object({
+  appId: z.string().min(1),
+  apiKey: z.string().min(1),
+  indexName: z.string().min(1),
+});
+
+const searchSchema = z.object({
+  provider: z.enum(["pagefind", "algolia"]).default("pagefind"),
+  algolia: algoliaSchema.optional(),
+}).default(() => ({ provider: "pagefind" as const }));
+
 const ezdocSchema = z.object({
   site: siteSchema,
   docs: docsSchema,
@@ -69,6 +80,7 @@ const ezdocSchema = z.object({
   versions: versionsSchema,
   deploy: deploySchema,
   overrides: overridesSchema,
+  search: searchSchema,
 }).refine(
   (data) => {
     if (data.deploy.target === "server" || data.deploy.target === "both") {
@@ -79,6 +91,17 @@ const ezdocSchema = z.object({
   {
     message: "deploy.target 包含 \"server\" 时，deploy.server 配置必填",
     path: ["deploy", "server"],
+  },
+).refine(
+  (data) => {
+    if (data.search.provider === "algolia") {
+      return data.search.algolia != null;
+    }
+    return true;
+  },
+  {
+    message: "search.provider 为 \"algolia\" 时，search.algolia 配置必填",
+    path: ["search", "algolia"],
   },
 );
 
@@ -99,6 +122,8 @@ export type VersionsConfig = z.infer<typeof versionsSchema>;
 export type ServerConfig = z.infer<typeof serverSchema>;
 export type DeployConfig = z.infer<typeof deploySchema>;
 export type OverridesConfig = z.infer<typeof overridesSchema>;
+export type SearchConfig = z.infer<typeof searchSchema>;
+export type AlgoliaConfig = z.infer<typeof algoliaSchema>;
 
 // ─── 错误格式化 ──────────────────────────────────────────────
 

@@ -6,17 +6,17 @@ import { components } from "@/components/mdx/mdx-components";
 import { TableOfContents } from "@/components/layout/toc";
 import { DocPagination } from "@/components/layout/doc-pagination";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
-import ezdocConfig from "@config";
+import { loadConfig } from "@/lib/config-loader";
 
 // ---------------------------------------------------------------------------
 // Static params generation for static export
 // ---------------------------------------------------------------------------
-export function generateStaticParams() {
-  const locales = getAllLocales();
+export async function generateStaticParams() {
+  const locales = await getAllLocales();
   const params: { locale: string; slug: string[] }[] = [];
 
   for (const locale of locales) {
-    const slugs = getAllSlugs(locale);
+    const slugs = await getAllSlugs(locale);
     for (const slug of slugs) {
       params.push({ locale, slug: slug.split("/") });
     }
@@ -35,7 +35,8 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale, slug: slugParts } = await params;
   const slug = slugParts.join("/");
-  const siteUrl = ezdocConfig.site.url ?? "";
+  const config = await loadConfig();
+  const siteUrl = config.site.url ?? "";
 
   try {
     const doc = await getDocBySlug(slug, locale, {
@@ -81,11 +82,11 @@ export default async function DocPage({
     notFound();
   }
 
-  const navigation = getNavigation(locale);
+  const navigation = await getNavigation(locale);
   const toc = extractToc(doc.raw);
   const { prev, next } = getPrevNext(slug, navigation);
   const breadcrumbs = getBreadcrumbs(slug, navigation, locale);
-  const lastModified = getLastModified(slug, locale);
+  const lastModified = await getLastModified(slug, locale);
 
   return (
     <>

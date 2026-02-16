@@ -1,0 +1,22 @@
+{
+  "name": "create-ez-docs",
+  "version": "0.1.0",
+  "description": "Create a new ez-docs documentation project",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Coldplay-now/ez-docs",
+    "directory": "packages/create-ez-docs"
+  },
+  "bin": {
+    "create-ez-docs": "./src/index.ts"
+  },
+  "files": [
+    "src/",
+    "templates/"
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
+}

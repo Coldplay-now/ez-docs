@@ -31,9 +31,9 @@ jobs:
 
       - name: Read deploy target from config
         id: read-config
+        working-directory: website
         run: |
-          # 用 tsx 执行 TypeScript 读取配置，替代 regex 解析
-          OUTPUT=$(pnpm tsx cli/read-deploy-config.ts)
+          OUTPUT=$(pnpm tsx ../packages/ez-docs/cli/read-deploy-config.ts)
           echo "$OUTPUT" >> "$GITHUB_OUTPUT"
           echo "$OUTPUT"
 
@@ -58,8 +58,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build
-        run: pnpm ezdoc build
+      - name: Build website
+        run: pnpm --filter ez-docs-website build
         # 服务器部署通常不需要 basePath（部署在根路径）
         # 如需子路径，取消注释并设置:
         # env:
@@ -69,7 +69,7 @@ jobs:
         uses: burnett01/rsync-deployments@7.0.1
         with:
           switches: -avzr --delete
-          path: out/
+          path: website/out/
           remote_path: ${{ needs.check-target.outputs.server-path }}/
           remote_host: ${{ secrets.SERVER_HOST }}
           remote_port: ${{ secrets.SERVER_PORT || 22 }}

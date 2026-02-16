@@ -1,16 +1,42 @@
 ---
 title: Getting Started
-description: Quick start guide for ezdoc
+description: From installation to your first doc page in 5 minutes
 ---
 
 ## Installation
 
-Clone the repository and install dependencies:
+Create a new project using the scaffolding tool:
 
 ```bash
-git clone https://github.com/Coldplay-now/ezdoc.git
-cd ezdoc
+npx create-ez-docs my-docs
+cd my-docs
 pnpm install
+```
+
+Or install manually:
+
+```bash
+mkdir my-docs && cd my-docs
+pnpm init
+pnpm add ez-docs next react react-dom
+```
+
+## Project Structure
+
+```text
+my-docs/
+├── docs/                        # Documentation root
+│   ├── zh/                      # Chinese docs
+│   │   ├── docs.json            # Chinese navigation config
+│   │   └── getting-started.mdx
+│   └── en/                      # English docs
+│       ├── docs.json            # English navigation config
+│       └── getting-started.mdx
+├── overrides/                   # Component overrides (optional)
+├── ezdoc.config.ts              # Project configuration
+├── next.config.ts               # Next.js config (uses withEzdoc)
+├── tsconfig.json                # TypeScript config (extends ez-docs)
+└── package.json
 ```
 
 ## Development
@@ -18,15 +44,78 @@ pnpm install
 Start the development server:
 
 ```bash
-pnpm dev
+pnpm ezdoc dev
 ```
 
-## Build
+Visit `http://localhost:3000` — it automatically redirects to the first doc page.
 
-Generate a static site:
+## Adding a Page
+
+### 1. Create the file
 
 ```bash
-pnpm build
+docs/en/guide/my-first-doc.mdx
 ```
 
-The output will be in the `out/` directory, ready for deployment.
+### 2. Write frontmatter and content
+
+```mdx
+---
+title: My First Doc
+---
+
+## Hello
+
+Your content goes here, supporting **Markdown** and MDX components.
+```
+
+### 3. Register in navigation
+
+Edit `docs/en/docs.json`:
+
+```json
+{
+  "navigation": [
+    {
+      "group": "Guide",
+      "pages": ["guide/my-first-doc"]
+    }
+  ]
+}
+```
+
+## Multilingual
+
+Each language in ezdoc is completely independent — separate file directories, separate navigation structures, separate content.
+
+Adding a new language requires just three steps:
+
+1. Add the language to `i18n.locales` in `ezdoc.config.ts`
+2. Create the `docs/{locale}/` directory
+3. Place `docs.json` and document files in that directory
+
+The language switcher on the right side of the Header will automatically display all configured languages.
+
+## Build & Deploy
+
+```bash
+pnpm ezdoc build   # Build static site to out/
+```
+
+Push to `main` branch — GitHub Actions will auto-deploy.
+
+## Upgrading
+
+Update ez-docs to the latest version:
+
+```bash
+pnpm update ez-docs
+```
+
+The CLI will auto-sync framework route files on the next `dev` or `build`.
+
+For detailed configuration and deployment instructions, see:
+
+- [Configuration Guide](/docs/en/guide/configuration) — Complete ezdoc.config.ts reference
+- [Docs Structure & Navigation](/docs/en/guide/docs-structure) — docs directory structure and docs.json details
+- [Deployment Guide](/docs/en/guide/deployment) — Full build and deploy workflow

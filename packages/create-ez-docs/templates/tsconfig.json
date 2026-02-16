@@ -1,9 +1,7 @@
 {
-  "extends": "../packages/ez-docs/tsconfig.base.json",
+  "extends": "ez-docs/tsconfig.base.json",
   "compilerOptions": {
     "paths": {
-      "@/*": ["../packages/ez-docs/src/*"],
-      "@config": ["./ezdoc.config.ts"],
       "@overrides/*": ["./overrides/*"]
     }
   },
@@ -12,8 +10,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts",
-    "**/*.mts"
+    ".next/dev/types/**/*.ts"
   ],
   "exclude": ["node_modules"]
 }

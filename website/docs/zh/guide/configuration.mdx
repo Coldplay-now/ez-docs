@@ -8,7 +8,7 @@ ezdoc 的所有配置集中在项目根目录的 `ezdoc.config.ts` 文件中。�
 ## 完整示例
 
 ```ts
-import { defineConfig } from "./src/lib/config";
+import { defineConfig } from "ez-docs/config";
 
 export default defineConfig({
   site: {
@@ -279,6 +279,44 @@ overrides: {
 
 ---
 
+## search — 搜索配置
+
+| 字段 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `provider` | `"pagefind" \| "algolia"` | `"pagefind"` | 搜索引擎 |
+| `algolia` | `AlgoliaConfig` | — | Algolia 配置，provider 为 `algolia` 时必填 |
+
+### AlgoliaConfig
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `appId` | `string` | Algolia Application ID |
+| `apiKey` | `string` | 搜索 API Key（公开可用） |
+| `indexName` | `string` | 索引名称 |
+
+```ts
+// 默认：使用 Pagefind（构建后自动生成索引）
+search: {
+  provider: "pagefind",
+}
+
+// 使用 Algolia DocSearch
+search: {
+  provider: "algolia",
+  algolia: {
+    appId: "YOUR_APP_ID",
+    apiKey: "YOUR_SEARCH_API_KEY",
+    indexName: "your_index",
+  },
+}
+```
+
+<Callout type="info" title="Pagefind 默认可用">
+  Pagefind 在构建时自动生成搜索索引，无需额外配置。Algolia 集成即将推出。
+</Callout>
+
+---
+
 ## 配置校验
 
 ezdoc 使用 Zod 在运行时校验配置。如果配置有误，终端会输出清晰的错误信息：
@@ -309,6 +347,7 @@ ezdoc 使用 Zod 在运行时校验配置。如果配置有误，终端会输出
   i18n: { defaultLocale: "zh", locales: [{ code: "zh", label: "中文" }] },
   deploy: { target: "github", basePath: "", output: "out" },
   overrides: { dir: "overrides" },
+  search: { provider: "pagefind" },
 }
 ```
 

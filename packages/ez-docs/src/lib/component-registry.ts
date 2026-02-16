@@ -39,14 +39,19 @@ export const COMPONENT_REGISTRY = {
 /**
  * 扫描 overrides 目录，构建 Turbopack resolveAlias 映射。
  *
+ * 注意：Turbopack 不支持绝对路径（会变成 server relative 路径报错），
+ * 因此 alias value 必须是相对于用户项目根目录的相对路径。
+ *
  * 返回形如：
  * {
- *   "@/components/mdx/callout": "/absolute/path/to/overrides/mdx/callout",
- *   "@/components/layout/footer": "/absolute/path/to/overrides/layout/footer",
+ *   "@/components/mdx/callout": "./overrides/mdx/callout",
+ *   "@/components/layout/footer": "./overrides/layout/footer",
  * }
  */
 export function buildResolveAlias(overridesDir: string): Record<string, string> {
   const alias: Record<string, string> = {};
+  // 计算 overrides 目录相对于 cwd 的路径（Turbopack 要求相对路径）
+  const relativeOverridesDir = "./" + path.relative(process.cwd(), overridesDir).replace(/\\/g, "/");
 
   for (const [category, components] of Object.entries(COMPONENT_REGISTRY)) {
     const categoryDir = path.join(overridesDir, category);
@@ -54,13 +59,10 @@ export function buildResolveAlias(overridesDir: string): Record<string, string> 
 
     for (const name of Object.keys(components)) {
       const overridePath = path.join(categoryDir, name);
-      if (
-        fs.existsSync(overridePath + ".tsx") ||
-        fs.existsSync(overridePath + ".ts") ||
-        fs.existsSync(overridePath + ".jsx") ||
-        fs.existsSync(overridePath + ".js")
-      ) {
-        alias[`@/components/${category}/${name}`] = overridePath;
+      // 检查覆盖文件是否存在（支持 .tsx/.ts/.jsx/.js）
+      const ext = [".tsx", ".ts", ".jsx", ".js"].find((e) => fs.existsSync(overridePath + e));
+      if (ext) {
+        alias[`@/components/${category}/${name}`] = `${relativeOverridesDir}/${category}/${name}${ext}`;
       }
     }
   }

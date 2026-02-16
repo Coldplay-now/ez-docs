@@ -1,12 +1,13 @@
 import type { MetadataRoute } from "next";
 import { getAllSlugs } from "@/lib/mdx";
-import ezdocConfig from "@config";
+import { loadConfig } from "@/lib/config-loader";
 
 export const dynamic = "force-static";
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = ezdocConfig.site.url ?? "https://coldplay-now.github.io/ezdoc";
-  const slugs = getAllSlugs();
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const config = await loadConfig();
+  const baseUrl = config.site.url ?? "https://coldplay-now.github.io/ezdoc";
+  const slugs = await getAllSlugs();
 
   return [
     {

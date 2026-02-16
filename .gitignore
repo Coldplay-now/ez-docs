@@ -33,8 +33,9 @@ public/pagefind/
 npm-debug.log*
 pnpm-debug.log*
 
-# ezdoc temp
+# ezdoc generated (route injection)
 .ezdoc/
+website/src/app/
 
 # typescript
 *.tsbuildinfo
