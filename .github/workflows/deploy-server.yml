@@ -1,0 +1,77 @@
+name: Deploy to Server
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: server-deploy
+  cancel-in-progress: true
+
+jobs:
+  check-target:
+    runs-on: ubuntu-latest
+    outputs:
+      deploy-server: ${{ steps.read-config.outputs.deploy-server }}
+      server-path: ${{ steps.read-config.outputs.server-path }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Read deploy target from config
+        id: read-config
+        run: |
+          # 用 tsx 执行 TypeScript 读取配置，替代 regex 解析
+          OUTPUT=$(pnpm tsx cli/read-deploy-config.ts)
+          echo "$OUTPUT" >> "$GITHUB_OUTPUT"
+          echo "$OUTPUT"
+
+  build-and-deploy:
+    needs: check-target
+    if: needs.check-target.outputs.deploy-server == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm ezdoc build
+        # 服务器部署通常不需要 basePath（部署在根路径）
+        # 如需子路径，取消注释并设置:
+        # env:
+        #   EZDOC_BASE_PATH: /docs
+
+      - name: Deploy via rsync
+        uses: burnett01/rsync-deployments@7.0.1
+        with:
+          switches: -avzr --delete
+          path: out/
+          remote_path: ${{ needs.check-target.outputs.server-path }}/
+          remote_host: ${{ secrets.SERVER_HOST }}
+          remote_port: ${{ secrets.SERVER_PORT || 22 }}
+          remote_user: ${{ secrets.SERVER_USER }}
+          remote_key: ${{ secrets.SERVER_SSH_KEY }}

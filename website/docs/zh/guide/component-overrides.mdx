@@ -1,0 +1,143 @@
+---
+title: 组件覆盖
+description: 通过 overrides 目录替换框架默认组件
+---
+
+ezdoc 允许你在不修改框架源码的情况下替换任何内置组件。只需在 `overrides/` 目录放置同名文件即可。
+
+## 工作原理
+
+```text
+overrides/
+├── mdx/
+│   └── callout.tsx      ← 覆盖默认 Callout 组件
+└── layout/
+    └── footer.tsx       ← 覆盖默认 Footer 组件
+```
+
+构建时，ezdoc 会扫描 `overrides/` 目录，通过 Turbopack 的路径别名机制将匹配的组件替换为用户版本。**无需修改任何框架代码。**
+
+---
+
+## 可覆盖的组件
+
+### MDX 组件
+
+| 文件名 | 导出组件 | 说明 |
+|--------|----------|------|
+| `callout.tsx` | `Callout` | 提示框 |
+| `tabs.tsx` | `Tabs`, `TabItem` | 标签页 |
+| `steps.tsx` | `Steps`, `Step` | 步骤列表 |
+| `card.tsx` | `Card`, `CardGroup` | 卡片 |
+| `accordion.tsx` | `Accordion`, `AccordionItem` | 手风琴折叠 |
+| `file-tree.tsx` | `FileTree` | 文件树 |
+| `badge.tsx` | `Badge` | 徽章 |
+| `video.tsx` | `Video` | 视频播放器 |
+| `image-zoom.tsx` | `ImageZoom` | 图片缩放 |
+| `tooltip.tsx` | `Tooltip` | 工具提示 |
+| `code-group.tsx` | `CodeGroup` | 代码组 |
+| `code-pre.tsx` | `CodePre` | 代码块 |
+| `mermaid.tsx` | `Mermaid` | Mermaid 图表 |
+
+### Layout 组件
+
+| 文件名 | 导出组件 | 说明 |
+|--------|----------|------|
+| `header.tsx` | `Header` | 顶部导航栏 |
+| `sidebar.tsx` | `Sidebar` | 侧边栏 |
+| `toc.tsx` | `TableOfContents` | 右侧目录 |
+| `breadcrumb.tsx` | `Breadcrumb` | 面包屑导航 |
+| `doc-pagination.tsx` | `DocPagination` | 上/下页导航 |
+| `footer.tsx` | `Footer` | 页脚（默认空实现） |
+
+---
+
+## 覆盖示例
+
+### 自定义 Callout
+
+创建 `overrides/mdx/callout.tsx`：
+
+```tsx
+import { type ReactNode } from "react";
+
+export function Callout({
+  type = "info",
+  title,
+  children,
+}: {
+  type?: "info" | "warning" | "error" | "tip";
+  title?: string;
+  children: ReactNode;
+}) {
+  const colors = {
+    info: "#3b82f6",
+    warning: "#f59e0b",
+    error: "#ef4444",
+    tip: "#10b981",
+  };
+
+  return (
+    <div style={{ borderLeft: `4px solid ${colors[type]}`, padding: "12px 16px", margin: "16px 0" }}>
+      {title && <strong>{title}</strong>}
+      <div>{children}</div>
+    </div>
+  );
+}
+```
+
+### 自定义 Footer
+
+创建 `overrides/layout/footer.tsx`：
+
+```tsx
+export function Footer() {
+  return (
+    <footer className="border-t py-6 text-center text-sm text-muted-foreground">
+      © 2025 Your Company. Powered by ezdoc.
+    </footer>
+  );
+}
+```
+
+---
+
+## 配置
+
+默认的 overrides 目录是项目根目录下的 `overrides/`，可以通过配置修改：
+
+```ts
+// ezdoc.config.ts
+{
+  overrides: {
+    dir: "my-components",  // 改为 my-components/ 目录
+  },
+}
+```
+
+---
+
+## Props 类型
+
+每个内置组件都导出了 Props 类型定义，方便你在覆盖时获得类型提示：
+
+```tsx
+// 在你的覆盖组件中导入类型
+import type { CalloutProps } from "@/components/mdx/callout";
+
+export function Callout(props: CalloutProps) {
+  // 你的自定义实现
+}
+```
+
+---
+
+## 注意事项
+
+<Callout type="warning" title="组件名必须匹配">
+  覆盖文件必须导出与默认组件同名的函数。例如覆盖 `callout.tsx` 必须导出 `Callout`，而不是 `MyCallout`。
+</Callout>
+
+<Callout type="info" title="热更新">
+  开发模式下，添加或删除覆盖文件需要**重启开发服务器**（`pnpm ezdoc dev`），因为路径别名在启动时解析。修改已存在的覆盖文件会自动热更新。
+</Callout>

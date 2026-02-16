@@ -1,0 +1,190 @@
+---
+title: Math Formulas and Diagrams
+description: KaTeX math formula and Mermaid diagram rendering
+---
+
+## Math Formulas
+
+ezdoc uses KaTeX to compile math formulas at build time, requiring no client-side JavaScript for extremely fast rendering.
+
+### Inline Formulas
+
+Use `$...$` to insert inline formulas within text:
+
+- The mass-energy equation $E = mc^2$ reveals the equivalence of mass and energy
+- Euler's identity $e^{i\pi} + 1 = 0$ is regarded as the most elegant formula in mathematics
+- The quadratic formula $x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}$
+- The Pythagorean theorem $a^2 + b^2 = c^2$
+
+### Block Formulas
+
+Use `$$...$$` to create centered block-level formulas:
+
+**Gaussian Integral**
+
+$$
+\int_{-\infty}^{\infty} e^{-x^2} \, dx = \sqrt{\pi}
+$$
+
+**Euler's Formula**
+
+$$
+e^{ix} = \cos x + i \sin x
+$$
+
+**Basel Problem**
+
+$$
+\sum_{n=1}^{\infty} \frac{1}{n^2} = \frac{\pi^2}{6}
+$$
+
+**Maxwell's Equations**
+
+$$
+\begin{aligned}
+\nabla \cdot \mathbf{E} &= \frac{\rho}{\varepsilon_0} \\
+\nabla \cdot \mathbf{B} &= 0 \\
+\nabla \times \mathbf{E} &= -\frac{\partial \mathbf{B}}{\partial t} \\
+\nabla \times \mathbf{B} &= \mu_0 \mathbf{J} + \mu_0 \varepsilon_0 \frac{\partial \mathbf{E}}{\partial t}
+\end{aligned}
+$$
+
+**Matrix Operations**
+
+$$
+\mathbf{A} = \begin{pmatrix}
+a_{11} & a_{12} & a_{13} \\
+a_{21} & a_{22} & a_{23} \\
+a_{31} & a_{32} & a_{33}
+\end{pmatrix}, \quad
+\det(\mathbf{A}) = \sum_{\sigma \in S_3} \text{sgn}(\sigma) \prod_{i=1}^{3} a_{i,\sigma(i)}
+$$
+
+**Bayes' Theorem**
+
+$$
+P(A \mid B) = \frac{P(B \mid A) \, P(A)}{P(B)}
+$$
+
+---
+
+## Mermaid Diagrams
+
+ezdoc supports client-side rendering of Mermaid diagrams, with color schemes that automatically adapt to light and dark themes.
+
+### Flowchart
+
+```mermaid
+graph TD
+    A[Write MDX Document] --> B[Git Commit]
+    B --> C{Trigger CI}
+    C -->|GitHub Actions| D[pnpm build]
+    D --> E[Generate Static Pages]
+    E --> F[Deploy to GitHub Pages]
+    C -->|Local| G[pnpm dev]
+    G --> H[Hot Reload Preview]
+```
+
+### Sequence Diagram
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant B as Browser
+    participant S as Static Server
+    participant G as GitHub
+
+    U->>B: Visit documentation site
+    B->>S: Request HTML
+    S-->>B: Return pre-rendered page
+    B->>B: Client-side hydration
+    B->>B: Mermaid diagram rendering
+
+    Note over U,G: Documentation update flow
+    U->>G: git push
+    G->>G: GitHub Actions build
+    G->>S: Deploy new version
+```
+
+### State Diagram
+
+```mermaid
+stateDiagram-v2
+    [*] --> Draft
+    Draft --> UnderReview: Submit for review
+    UnderReview --> Published: Review approved
+    UnderReview --> Draft: Revisions needed
+    Published --> Archived: Archive
+    Archived --> [*]
+```
+
+### Gantt Chart
+
+```mermaid
+gantt
+    title ezdoc Development Plan
+    dateFormat YYYY-MM-DD
+    section Infrastructure
+        Project initialization   :done, t1, 2025-01-01, 1d
+        Configuration system     :done, t2, after t1, 1d
+        MDX compilation engine   :done, t3, after t2, 2d
+        Navigation parser        :done, t4, after t2, 2d
+    section Rendering
+        Component mapping        :done, t5, after t3, 1d
+        Built-in components      :done, t6, after t3, 2d
+        KaTeX formulas           :done, t7, after t3, 1d
+        Mermaid diagrams         :done, t8, after t5, 1d
+    section Page System
+        Three-column layout      :done, t9, after t6, 2d
+        Dark mode                :done, t10, after t9, 1d
+    section Advanced Features
+        Full-text search         :t12, after t10, 3d
+        Internationalization     :t13, after t10, 2d
+```
+
+### Pie Chart
+
+```mermaid
+pie title ezdoc Tech Stack Distribution
+    "Next.js" : 30
+    "React" : 20
+    "Tailwind CSS" : 15
+    "MDX/Remark/Rehype" : 20
+    "Shiki" : 8
+    "Mermaid" : 4
+    "KaTeX" : 3
+```
+
+### Class Diagram
+
+```mermaid
+classDiagram
+    class EzdocConfig {
+        +SiteConfig site
+        +DocsConfig docs
+        +ThemeConfig theme
+        +I18nConfig i18n
+        +DeployConfig deploy
+    }
+
+    class SiteConfig {
+        +string title
+        +string description
+        +string logo
+        +Record socials
+    }
+
+    class DocsConfig {
+        +string dir
+        +string nav
+    }
+
+    class ThemeConfig {
+        +string defaultMode
+        +string primaryColor
+    }
+
+    EzdocConfig *-- SiteConfig
+    EzdocConfig *-- DocsConfig
+    EzdocConfig *-- ThemeConfig
+```

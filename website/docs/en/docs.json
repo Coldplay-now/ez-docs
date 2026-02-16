@@ -1,0 +1,47 @@
+{
+  "navigation": [
+    {
+      "group": "Getting Started",
+      "pages": [
+        "getting-started",
+        { "title": "Markdown Basics", "path": "guide/markdown-basics" }
+      ]
+    },
+    {
+      "group": "Guide",
+      "pages": [
+        {
+          "group": "Basics",
+          "pages": [
+            { "title": "Configuration Guide", "path": "guide/configuration" },
+            { "title": "Docs Structure & Navigation", "path": "guide/docs-structure" },
+            { "title": "Component Overrides", "path": "guide/component-overrides" },
+            { "title": "CLI Reference", "path": "guide/cli" },
+            { "title": "Deployment Guide", "path": "guide/deployment" }
+          ]
+        },
+        {
+          "group": "Advanced",
+          "pages": [
+            { "title": "Interactive Components", "path": "guide/interactive-components" },
+            { "title": "Extended Components", "path": "guide/extended-components" },
+            { "title": "Code & Syntax Highlighting", "path": "guide/code-highlighting" },
+            { "title": "Math & Diagrams", "path": "guide/math-and-diagrams" }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "Reference",
+      "pages": [
+        "components"
+      ]
+    },
+    {
+      "group": "Examples",
+      "pages": [
+        { "title": "Building Skills for Claude", "path": "guide/building-skills-for-claude" }
+      ]
+    }
+  ]
+}

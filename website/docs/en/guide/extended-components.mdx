@@ -1,0 +1,224 @@
+---
+title: Extended Components
+description: "ezdoc's extended MDX components: Steps, Card, Accordion, FileTree, Badge, Video, ImageZoom, Tooltip"
+---
+
+## Steps
+
+Use `Steps` and `Step` to display sequential workflows:
+
+<Steps>
+  <Step title="Install Dependencies">
+    Clone the repository and install project dependencies:
+
+    ```bash
+    git clone https://github.com/Coldplay-now/ezdoc.git
+    cd ezdoc && pnpm install
+    ```
+  </Step>
+  <Step title="Write Documentation">
+    Create a new `.mdx` file under the `docs/zh/` directory, and add frontmatter and content.
+  </Step>
+  <Step title="Local Preview">
+    Run `pnpm dev` to start the development server and preview the results in your browser.
+  </Step>
+  <Step title="Build and Deploy">
+    Run `pnpm build` to generate static files, then deploy to GitHub Pages or any static hosting service.
+  </Step>
+</Steps>
+
+### Syntax
+
+```mdx
+<Steps>
+  <Step title="First Step">
+    Step content, supports **Markdown** and code blocks.
+  </Step>
+  <Step title="Second Step">
+    More content...
+  </Step>
+</Steps>
+```
+
+---
+
+## Card
+
+Use `Card` and `CardGroup` to display feature navigation or information cards:
+
+<CardGroup cols={3}>
+  <Card title="Quick Start" icon="🚀" href="/docs/zh/getting-started">
+    Get started with ezdoc in 5 minutes — from installation to writing your first document.
+  </Card>
+  <Card title="Configuration Guide" icon="⚙️" href="/docs/zh/guide/configuration">
+    Complete reference for site configuration, themes, multi-language setup, and more.
+  </Card>
+  <Card title="Deployment Guide" icon="📦" href="/docs/zh/guide/deployment">
+    Detailed instructions for deploying to GitHub Pages and custom servers.
+  </Card>
+</CardGroup>
+
+### Two-Column Layout
+
+<CardGroup cols={2}>
+  <Card title="Markdown Support" icon="📝">
+    Full GFM syntax support, including tables, task lists, strikethrough, and more.
+  </Card>
+  <Card title="MDX Components" icon="🧩">
+    Rich built-in components to make your documentation more expressive.
+  </Card>
+</CardGroup>
+
+### Syntax
+
+```mdx
+<CardGroup cols={2}>
+  <Card title="Title" icon="🚀" href="/docs/zh/getting-started">
+    Card description content.
+  </Card>
+</CardGroup>
+```
+
+| Prop | Description | Default |
+|------|-------------|---------|
+| `cols` | Number of CardGroup columns (2/3/4) | `2` |
+| `title` | Card title | Required |
+| `icon` | Card icon (emoji) | Optional |
+| `href` | Card link URL | Optional |
+
+---
+
+## Accordion
+
+Use `Accordion` and `AccordionItem` to create collapsible content sections:
+
+<Accordion>
+  <AccordionItem title="What Markdown syntax does ezdoc support?">
+    ezdoc fully supports GitHub Flavored Markdown (GFM), including tables, task lists, strikethrough, autolinks, and more. It also supports math formulas (KaTeX) and Mermaid diagrams.
+  </AccordionItem>
+  <AccordionItem title="How do I add a new documentation page?">
+    Create an `.mdx` file under the `docs/zh/` directory, then add the corresponding path to the navigation section in `docs/zh/docs.json`.
+  </AccordionItem>
+  <AccordionItem title="Is multi-language supported?">
+    Yes. Configure `i18n.locales` in `ezdoc.config.ts`, then create a separate documentation directory (e.g., `docs/en/`) and navigation file for each language.
+  </AccordionItem>
+</Accordion>
+
+### Syntax
+
+```mdx
+<Accordion>
+  <AccordionItem title="Question title">
+    Answer content, supports **Markdown** formatting.
+  </AccordionItem>
+</Accordion>
+```
+
+---
+
+## FileTree
+
+Use `FileTree` to display project directory structures:
+
+<FileTree json='["docs/", ["zh/", ["docs.json", "getting-started.mdx", "components.mdx", "guide/", ["configuration.mdx", "deployment.mdx", "extended-components.mdx"]], "en/", ["docs.json", "getting-started.mdx"]], "ezdoc.config.ts", "package.json"]' />
+
+### Syntax
+
+Pass a JSON-formatted array string via the `json` prop. Folder names end with `/` and are followed by a sub-array representing their contents. File names do not end with `/`.
+
+```mdx
+<FileTree json='["src/", ["components/", ["Button.tsx", "Header.tsx"], "lib/", ["utils.ts"]], "package.json"]' />
+```
+
+---
+
+## Badge
+
+Use `Badge` to display status labels:
+
+- <Badge>Default</Badge> — General-purpose label
+- <Badge variant="success">Stable</Badge> — Feature is stable
+- <Badge variant="warning">Experimental</Badge> — Experimental feature
+- <Badge variant="error">Deprecated</Badge> — No longer recommended
+
+### Syntax
+
+```mdx
+<Badge>Default</Badge>
+<Badge variant="success">Stable</Badge>
+<Badge variant="warning">Experimental</Badge>
+<Badge variant="error">Deprecated</Badge>
+```
+
+| variant | Description |
+|---------|-------------|
+| `default` | Gray, the default |
+| `success` | Green |
+| `warning` | Yellow |
+| `error` | Red |
+
+---
+
+## Video
+
+Use `Video` to embed video content. It automatically detects YouTube, Bilibili, or local video sources:
+
+### YouTube Video
+
+<Video src="https://www.youtube.com/watch?v=dQw4w9WgXcQ" title="YouTube Sample Video" />
+
+### Bilibili Video
+
+<Video src="https://www.bilibili.com/video/BV1xx411c7mD" title="Bilibili Sample Video" />
+
+### Syntax
+
+```mdx
+<Video src="https://www.youtube.com/watch?v=dQw4w9WgXcQ" title="Video title" />
+<Video src="https://www.bilibili.com/video/BV1xx411c7mD" title="Video title" />
+<Video src="/videos/demo.mp4" title="Local video" />
+```
+
+| Prop | Description | Default |
+|------|-------------|---------|
+| `src` | Video URL (YouTube/Bilibili URL or local path) | Required |
+| `title` | Video title (displayed below) | Optional |
+
+---
+
+## ImageZoom
+
+Use `ImageZoom` to enable click-to-zoom for images:
+
+<ImageZoom src="https://github.githubassets.com/assets/github-logo-55c5b2b2feaa.png" alt="GitHub Logo" />
+
+Click the image above to view it in full screen. Press `ESC` or click the background to close.
+
+### Syntax
+
+```mdx
+<ImageZoom src="/images/screenshot.png" alt="Screenshot description" />
+```
+
+| Prop | Description | Default |
+|------|-------------|---------|
+| `src` | Image URL | Required |
+| `alt` | Alt text | Optional |
+| `width` | Image width | Optional |
+| `height` | Image height | Optional |
+
+---
+
+## Tooltip
+
+Use `Tooltip` to add hover hints to terms or text:
+
+ezdoc uses the <Tooltip content="A format that combines Markdown with JSX components">MDX</Tooltip> format for writing documentation, supports <Tooltip content="GitHub Flavored Markdown, an extended Markdown syntax by GitHub">GFM</Tooltip> syntax, and provides full-text search powered by <Tooltip content="A static search engine that generates indexes at build time">Pagefind</Tooltip>.
+
+### Syntax
+
+```mdx
+<Tooltip content="Tooltip content">Annotated text</Tooltip>
+```
+
+Hover over text with a dashed underline to see the tooltip.

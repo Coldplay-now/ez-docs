@@ -1,0 +1,315 @@
+---
+title: Configuration Guide
+description: Complete reference for ezdoc.config.ts configuration options
+---
+
+All ezdoc configuration is centralized in the `ezdoc.config.ts` file at the project root. Use the `defineConfig` function to get full type hints.
+
+## Full Example
+
+```ts
+import { defineConfig } from "./src/lib/config";
+
+export default defineConfig({
+  site: {
+    title: "ezdoc",
+    description: "基于 Git 仓库的文档管理与渲染系统",
+    url: "https://coldplay-now.github.io/ezdoc",
+    favicon: "/favicon.ico",
+    socials: {
+      github: "https://github.com/Coldplay-now/ezdoc",
+    },
+  },
+
+  docs: {
+    dir: "docs",
+    nav: "docs.json",
+  },
+
+  theme: {
+    defaultMode: "system",
+    primaryColor: "#3b82f6",
+  },
+
+  i18n: {
+    defaultLocale: "zh",
+    locales: [
+      { code: "zh", label: "中文" },
+      { code: "en", label: "English" },
+    ],
+  },
+
+  deploy: {
+    target: "github",
+    basePath: "",
+    output: "out",
+  },
+});
+```
+
+---
+
+## site — Site Information
+
+| Field | Type | Required | Default | Description |
+|-------|------|:--------:|---------|-------------|
+| `title` | `string` | **Yes** | `"ezdoc"` | Site title, displayed on the left side of the Header and in the browser tab |
+| `description` | `string` | No | — | Site description, used for the homepage and SEO |
+| `url` | `string` | No | — | Full site URL, used for sitemap and OG tags |
+| `logo` | `string` | No | — | Logo image path |
+| `favicon` | `string` | No | — | Favicon path |
+| `socials` | `Record<string, string>` | No | — | Social links; currently supports `github` |
+
+```ts
+site: {
+  title: "My Docs",
+  description: "项目文档",
+  url: "https://example.com",
+  favicon: "/favicon.ico",
+  socials: {
+    github: "https://github.com/your-org/your-repo",
+  },
+}
+```
+
+---
+
+## docs — Documentation Configuration
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `dir` | `string` | `"docs"` | Documentation root directory path (relative to the project root) |
+| `nav` | `string` | `"docs.json"` | Navigation configuration filename |
+
+The actual document file paths follow the pattern `{dir}/{locale}/`, and the navigation configuration is at `{dir}/{locale}/{nav}`.
+
+For example, with the default configuration:
+- Chinese docs: `docs/zh/*.mdx`
+- Chinese navigation: `docs/zh/docs.json`
+- English docs: `docs/en/*.mdx`
+- English navigation: `docs/en/docs.json`
+
+<Callout type="info" title="Fallback Mechanism">
+  If a language directory does not contain a `docs.json`, the system will automatically scan all `.md`/`.mdx` files in that directory and generate navigation grouped by subdirectory. However, it is recommended to always write a `docs.json` manually for precise control.
+</Callout>
+
+---
+
+## theme — Theme Configuration
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `defaultMode` | `"light" \| "dark" \| "system"` | `"system"` | Default theme mode |
+| `primaryColor` | `string` | `"#3b82f6"` | Primary color (hex) |
+| `accentColor` | `string` | — | Accent color |
+
+```ts
+theme: {
+  defaultMode: "system",  // 跟随系统偏好
+  primaryColor: "#8b5cf6", // 紫色主题
+}
+```
+
+The theme toggle button is located on the right side of the Header. The user's preference is saved in `localStorage`.
+
+---
+
+## i18n — Internationalization Configuration
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `defaultLocale` | `string` | `"zh"` | Default language code |
+| `locales` | `LocaleEntry[]` | `[{ code: "zh", label: "中文" }]` | List of supported languages |
+
+Each `LocaleEntry` contains:
+
+| Field | Description |
+|-------|-------------|
+| `code` | Language code, corresponding to the subdirectory name under `docs/` (e.g., `zh`, `en`, `ja`) |
+| `label` | Display name, used in the language switcher dropdown in the Header |
+
+### Adding a New Language
+
+Here is an example of adding Japanese:
+
+**1. Update the configuration:**
+
+```ts
+i18n: {
+  defaultLocale: "zh",
+  locales: [
+    { code: "zh", label: "中文" },
+    { code: "en", label: "English" },
+    { code: "ja", label: "日本語" },     // 新增
+  ],
+}
+```
+
+**2. Create the documentation directory:**
+
+```text
+docs/ja/
+├── docs.json
+└── getting-started.mdx
+```
+
+**3. Write the navigation configuration** `docs/ja/docs.json`:
+
+```json
+{
+  "navigation": [
+    {
+      "group": "はじめに",
+      "pages": ["getting-started"]
+    }
+  ]
+}
+```
+
+Once complete, the Header language switcher will automatically display all three languages.
+
+### URL Structure
+
+All languages use a path prefix:
+
+| URL | Description |
+|-----|-------------|
+| `/docs` | Automatically redirects to `/docs/{defaultLocale}/{firstPage}` |
+| `/docs/zh/getting-started` | Chinese documentation |
+| `/docs/en/getting-started` | English documentation |
+| `/docs/ja/getting-started` | Japanese documentation |
+
+<Callout type="tip" title="Language Independence">
+  The documentation content and navigation structure for each language are completely independent. They do not need to be one-to-one. Chinese can have 10 documents while English has only 3 -- that is perfectly fine.
+</Callout>
+
+---
+
+## deploy — Deployment Configuration
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `target` | `"github" \| "server" \| "both"` | `"github"` | Deployment target |
+| `basePath` | `string` | `""` | Deployment sub-path (e.g., `/ezdoc`) |
+| `output` | `string` | `"out"` | Build output directory |
+| `server` | `ServerConfig` | — | Server configuration, required when target is `server` or `both` |
+
+### ServerConfig
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `host` | `string` | — | Server IP or domain |
+| `port` | `number` | `22` | SSH port |
+| `user` | `string` | `"root"` | SSH username |
+| `path` | `string` | — | Deployment path on the server |
+
+<Tabs defaultValue="github">
+  <TabItem label="GitHub Pages" value="github">
+    ```ts
+    deploy: {
+      target: "github",
+      basePath: "",
+    }
+    ```
+
+    When you push to the `main` branch, GitHub Actions will automatically build and deploy. You need to set the Source to **GitHub Actions** in the repository Settings > Pages.
+  </TabItem>
+
+  <TabItem label="Self-Hosted Server" value="server">
+    ```ts
+    deploy: {
+      target: "server",
+      server: {
+        host: "your-server.com",
+        port: 22,
+        user: "root",
+        path: "/var/www/docs",
+      },
+    }
+    ```
+
+    You need to configure `SERVER_HOST`, `SERVER_PORT`, `SERVER_USER`, and `SERVER_SSH_KEY` in the repository Settings > Secrets.
+  </TabItem>
+
+  <TabItem label="Deploy to Both" value="both">
+    ```ts
+    deploy: {
+      target: "both",
+      server: {
+        host: "your-server.com",
+        port: 22,
+        user: "root",
+        path: "/var/www/docs",
+      },
+    }
+    ```
+
+    <Callout type="warning" title="basePath Differences">
+      GitHub Pages typically requires a sub-path (e.g., `/ezdoc`), while server deployments usually use the root path. The CI handles this via the `EZDOC_BASE_PATH` environment variable for each target, so you do not need to set `basePath` in the configuration.
+    </Callout>
+  </TabItem>
+</Tabs>
+
+### Environment Variables
+
+| Variable | Description |
+|----------|-------------|
+| `EZDOC_BASE_PATH` | Overrides the `basePath` configuration; commonly used in CI/CD |
+
+```bash
+# 本地构建时模拟 GitHub Pages 子路径
+EZDOC_BASE_PATH=/ezdoc pnpm build
+```
+
+---
+
+## overrides — Component Overrides
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `dir` | `string` | `"overrides"` | Component overrides directory path (relative to the project root) |
+
+```ts
+overrides: {
+  dir: "overrides",  // 默认值，通常不需要修改
+}
+```
+
+See the [Component Overrides Guide](/docs/en/guide/component-overrides) for details.
+
+---
+
+## Configuration Validation
+
+ezdoc uses Zod for runtime configuration validation. If the configuration is invalid, the terminal will output a clear error message:
+
+```text
+[ezdoc] ezdoc.config.ts 配置校验失败:
+
+  ✗ site.title — 不能为空
+  ✗ site.url — Invalid url: must include a protocol (e.g. https://)
+  ✗ deploy.server — deploy.target 包含 "server" 时，deploy.server 配置必填
+
+  共 3 个错误。请修复后重试。
+```
+
+You can run `pnpm ezdoc check` at any time to validate the configuration and documentation without triggering a build.
+
+---
+
+## Default Values Overview
+
+When not explicitly configured, ezdoc uses the following default values:
+
+```ts
+{
+  site: { title: "ezdoc" },
+  docs: { dir: "docs", nav: "docs.json" },
+  theme: { defaultMode: "system" },
+  i18n: { defaultLocale: "zh", locales: [{ code: "zh", label: "中文" }] },
+  deploy: { target: "github", basePath: "", output: "out" },
+  overrides: { dir: "overrides" },
+}
+```
+
+Only `site.title` truly needs to be configured -- all other fields have sensible defaults.

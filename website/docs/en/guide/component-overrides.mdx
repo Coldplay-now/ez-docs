@@ -1,0 +1,143 @@
+---
+title: Component Overrides
+description: Replace default framework components using the overrides directory
+---
+
+ezdoc allows you to replace any built-in component without modifying the framework source code. Simply place a file with the same name in the `overrides/` directory.
+
+## How It Works
+
+```text
+overrides/
+├── mdx/
+│   └── callout.tsx      ← 覆盖默认 Callout 组件
+└── layout/
+    └── footer.tsx       ← 覆盖默认 Footer 组件
+```
+
+During the build, ezdoc scans the `overrides/` directory and replaces matching components with the user's versions through Turbopack's path aliasing mechanism. **No framework code needs to be modified.**
+
+---
+
+## Overridable Components
+
+### MDX Components
+
+| Filename | Exported Component | Description |
+|----------|-------------------|-------------|
+| `callout.tsx` | `Callout` | Callout box |
+| `tabs.tsx` | `Tabs`, `TabItem` | Tab panels |
+| `steps.tsx` | `Steps`, `Step` | Step list |
+| `card.tsx` | `Card`, `CardGroup` | Cards |
+| `accordion.tsx` | `Accordion`, `AccordionItem` | Accordion |
+| `file-tree.tsx` | `FileTree` | File tree |
+| `badge.tsx` | `Badge` | Badge |
+| `video.tsx` | `Video` | Video player |
+| `image-zoom.tsx` | `ImageZoom` | Image zoom |
+| `tooltip.tsx` | `Tooltip` | Tooltip |
+| `code-group.tsx` | `CodeGroup` | Code group |
+| `code-pre.tsx` | `CodePre` | Code block |
+| `mermaid.tsx` | `Mermaid` | Mermaid diagram |
+
+### Layout Components
+
+| Filename | Exported Component | Description |
+|----------|-------------------|-------------|
+| `header.tsx` | `Header` | Top navigation bar |
+| `sidebar.tsx` | `Sidebar` | Sidebar |
+| `toc.tsx` | `TableOfContents` | Right-side table of contents |
+| `breadcrumb.tsx` | `Breadcrumb` | Breadcrumb navigation |
+| `doc-pagination.tsx` | `DocPagination` | Previous / Next page navigation |
+| `footer.tsx` | `Footer` | Footer (empty by default) |
+
+---
+
+## Override Examples
+
+### Custom Callout
+
+Create `overrides/mdx/callout.tsx`:
+
+```tsx
+import { type ReactNode } from "react";
+
+export function Callout({
+  type = "info",
+  title,
+  children,
+}: {
+  type?: "info" | "warning" | "error" | "tip";
+  title?: string;
+  children: ReactNode;
+}) {
+  const colors = {
+    info: "#3b82f6",
+    warning: "#f59e0b",
+    error: "#ef4444",
+    tip: "#10b981",
+  };
+
+  return (
+    <div style={{ borderLeft: `4px solid ${colors[type]}`, padding: "12px 16px", margin: "16px 0" }}>
+      {title && <strong>{title}</strong>}
+      <div>{children}</div>
+    </div>
+  );
+}
+```
+
+### Custom Footer
+
+Create `overrides/layout/footer.tsx`:
+
+```tsx
+export function Footer() {
+  return (
+    <footer className="border-t py-6 text-center text-sm text-muted-foreground">
+      © 2025 Your Company. Powered by ezdoc.
+    </footer>
+  );
+}
+```
+
+---
+
+## Configuration
+
+The default overrides directory is `overrides/` at the project root. You can change this in the configuration:
+
+```ts
+// ezdoc.config.ts
+{
+  overrides: {
+    dir: "my-components",  // 改为 my-components/ 目录
+  },
+}
+```
+
+---
+
+## Props Types
+
+Every built-in component exports its Props type definition, making it easy to get type hints when writing overrides:
+
+```tsx
+// 在你的覆盖组件中导入类型
+import type { CalloutProps } from "@/components/mdx/callout";
+
+export function Callout(props: CalloutProps) {
+  // 你的自定义实现
+}
+```
+
+---
+
+## Important Notes
+
+<Callout type="warning" title="Component Names Must Match">
+  The override file must export a function with the same name as the default component. For example, overriding `callout.tsx` must export `Callout`, not `MyCallout`.
+</Callout>
+
+<Callout type="info" title="Hot Reloading">
+  In development mode, adding or removing override files requires **restarting the dev server** (`pnpm ezdoc dev`), because path aliases are resolved at startup. Modifying an existing override file will trigger hot reloading automatically.
+</Callout>

@@ -1,0 +1,236 @@
+---
+title: Documentation Structure and Navigation
+description: Detailed guide on the docs directory structure and docs.json navigation configuration
+---
+
+## Directory Structure
+
+ezdoc stores documentation in the `docs/` directory, organized into subdirectories by language:
+
+```text
+docs/
+├── zh/                          # 中文
+│   ├── docs.json                # 中文侧边栏导航
+│   ├── getting-started.mdx      # 根级文档
+│   ├── components.mdx
+│   └── guide/                   # 子目录
+│       ├── configuration.mdx
+│       ├── docs-structure.mdx
+│       └── deployment.mdx
+└── en/                          # English
+    ├── docs.json                # 英文侧边栏导航
+    ├── getting-started.mdx
+    └── guide/
+        └── building-skills-for-claude.mdx
+```
+
+### Rules
+
+- Each language has its own directory, where the directory name corresponds to the `code` value in `i18n.locales` of `ezdoc.config.ts`
+- Both `.mdx` and `.md` formats are supported, with `.mdx` taking priority
+- Arbitrary levels of subdirectories are supported (e.g., `guide/`, `api/v2/`, etc.)
+- The directory structure and files for each language are completely independent and do not need to be aligned
+
+### Frontmatter
+
+Each document file should include YAML frontmatter:
+
+```yaml
+---
+title: 页面标题          # 显示在页面顶部和浏览器标签
+description: 页面描述    # 显示在标题下方，用于 SEO
+---
+```
+
+| Field | Required | Description |
+|-------|:--------:|-------------|
+| `title` | Recommended | Page title. If no title is specified in `docs.json`, the sidebar will use this value |
+| `description` | No | Page description, displayed below the title and also used for `<meta>` tags |
+
+If `title` is not set, the sidebar will use the filename as the title.
+
+---
+
+## docs.json — Navigation Configuration
+
+The `docs.json` file in each language directory controls the sidebar navigation structure for that language.
+
+### Basic Format
+
+```json
+{
+  "navigation": [
+    {
+      "group": "分组名称",
+      "pages": [
+        "page-slug",
+        { "title": "自定义标题", "path": "path/to/page" }
+      ]
+    }
+  ]
+}
+```
+
+### Field Descriptions
+
+**navigation** — The top-level array, where each element is a navigation group.
+
+**group** — The group name, displayed in the sidebar as a collapsible group header.
+
+**pages** — The list of pages under this group, supporting two formats:
+
+<Tabs defaultValue="string">
+  <TabItem label="String Format" value="string">
+    Use the file path directly (relative to the language directory, without the extension):
+
+    ```json
+    "pages": ["getting-started", "components"]
+    ```
+
+    The sidebar title is automatically read from the file's frontmatter `title`.
+  </TabItem>
+
+  <TabItem label="Object Format" value="object">
+    Manually specify the title and path:
+
+    ```json
+    "pages": [
+      { "title": "快速开始", "path": "getting-started" },
+      { "title": "配置指南", "path": "guide/configuration" }
+    ]
+    ```
+
+    `title` overrides the title from the frontmatter, and `path` is relative to the language directory.
+  </TabItem>
+</Tabs>
+
+### Full Example
+
+```json
+{
+  "navigation": [
+    {
+      "group": "入门",
+      "pages": [
+        "getting-started",
+        { "title": "Markdown 基础语法", "path": "guide/markdown-basics" }
+      ]
+    },
+    {
+      "group": "指南",
+      "pages": [
+        { "title": "配置指南", "path": "guide/configuration" },
+        { "title": "文档目录与导航", "path": "guide/docs-structure" },
+        { "title": "部署指南", "path": "guide/deployment" },
+        { "title": "交互组件", "path": "guide/interactive-components" },
+        { "title": "代码与语法高亮", "path": "guide/code-highlighting" },
+        { "title": "数学公式与图表", "path": "guide/math-and-diagrams" }
+      ]
+    },
+    {
+      "group": "参考",
+      "pages": [
+        "components"
+      ]
+    }
+  ]
+}
+```
+
+### Path Resolution Rules
+
+`path` is the file path relative to the language directory, without the extension:
+
+| Value in pages | Actual File Path |
+|----------------|-----------------|
+| `"getting-started"` | `docs/zh/getting-started.mdx` |
+| `"guide/configuration"` | `docs/zh/guide/configuration.mdx` |
+| `"api/v2/endpoints"` | `docs/zh/api/v2/endpoints.mdx` |
+
+The system looks for `.mdx` first, then `.md`, prioritizing `.mdx`.
+
+### Sidebar Behavior
+
+- Groups are collapsed by default; the group containing the current page is automatically expanded
+- Clicking a group header toggles its expanded/collapsed state
+- The current page is highlighted in the sidebar
+- The "Previous / Next" buttons at the bottom of the page navigate according to the order defined in `docs.json`
+
+<Callout type="warning" title="Important Notes">
+  Pages referenced in `docs.json` must have a corresponding file, otherwise the build will fail. Conversely, if a file exists but is not referenced in `docs.json`, it will not appear in the sidebar (but can still be accessed directly via URL).
+</Callout>
+
+---
+
+## Fallback Mode Without docs.json
+
+If a language directory does not contain a `docs.json`, the system will automatically:
+
+1. Recursively scan all `.md`/`.mdx` files in that directory
+2. Group them by subdirectory name (root-level files are placed in a default "Docs" group)
+3. Sort by filename alphabetically
+
+This mode is suitable for quick prototyping but is not recommended for production projects -- writing a `docs.json` manually gives you precise control over page ordering and group names.
+
+---
+
+## Complete Workflow for Adding a New Language
+
+Here is an example of adding Japanese (`ja`):
+
+### 1. Update ezdoc.config.ts
+
+```ts
+i18n: {
+  defaultLocale: "zh",
+  locales: [
+    { code: "zh", label: "中文" },
+    { code: "en", label: "English" },
+    { code: "ja", label: "日本語" },
+  ],
+}
+```
+
+### 2. Create the Directory and Files
+
+```bash
+mkdir -p docs/ja
+```
+
+### 3. Write docs.json
+
+`docs/ja/docs.json`:
+
+```json
+{
+  "navigation": [
+    {
+      "group": "はじめに",
+      "pages": ["getting-started"]
+    }
+  ]
+}
+```
+
+### 4. Write Documentation
+
+`docs/ja/getting-started.mdx`:
+
+```mdx
+---
+title: クイックスタート
+description: ezdoc の使い方
+---
+
+## インストール
+
+...
+```
+
+### 5. Build and Verify
+
+```bash
+pnpm build
+```
+
+Confirm that the `out/docs/ja/` directory is generated and the Header language switcher displays all three languages.

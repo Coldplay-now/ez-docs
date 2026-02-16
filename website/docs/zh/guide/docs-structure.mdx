@@ -1,0 +1,236 @@
+---
+title: 文档目录与导航
+description: docs 目录结构和 docs.json 导航配置详解
+---
+
+## 目录结构
+
+ezdoc 的文档存放在 `docs/` 目录下，按语言分子目录：
+
+```text
+docs/
+├── zh/                          # 中文
+│   ├── docs.json                # 中文侧边栏导航
+│   ├── getting-started.mdx      # 根级文档
+│   ├── components.mdx
+│   └── guide/                   # 子目录
+│       ├── configuration.mdx
+│       ├── docs-structure.mdx
+│       └── deployment.mdx
+└── en/                          # English
+    ├── docs.json                # 英文侧边栏导航
+    ├── getting-started.mdx
+    └── guide/
+        └── building-skills-for-claude.mdx
+```
+
+### 规则
+
+- 每种语言一个目录，目录名对应 `ezdoc.config.ts` 中 `i18n.locales` 的 `code` 值
+- 支持 `.mdx` 和 `.md` 两种格式，`.mdx` 优先
+- 支持任意层级的子目录（如 `guide/`、`api/v2/` 等）
+- 各语言的目录结构和文件完全独立，不要求对齐
+
+### Frontmatter
+
+每个文档文件应包含 YAML frontmatter：
+
+```yaml
+---
+title: 页面标题          # 显示在页面顶部和浏览器标签
+description: 页面描述    # 显示在标题下方，用于 SEO
+---
+```
+
+| 字段 | 必填 | 说明 |
+|------|:----:|------|
+| `title` | 建议 | 页面标题。如果 `docs.json` 中未指定 title，侧边栏会使用此值 |
+| `description` | 否 | 页面描述，显示在标题下方，同时用于 `<meta>` 标签 |
+
+如果未设置 `title`，侧边栏会使用文件名作为标题。
+
+---
+
+## docs.json — 导航配置
+
+每种语言目录下的 `docs.json` 控制该语言的侧边栏导航结构。
+
+### 基本格式
+
+```json
+{
+  "navigation": [
+    {
+      "group": "分组名称",
+      "pages": [
+        "page-slug",
+        { "title": "自定义标题", "path": "path/to/page" }
+      ]
+    }
+  ]
+}
+```
+
+### 字段说明
+
+**navigation** — 顶层数组，每个元素是一个导航分组。
+
+**group** — 分组名称，显示在侧边栏中作为可折叠的分组标题。
+
+**pages** — 该分组下的页面列表，支持两种写法：
+
+<Tabs defaultValue="string">
+  <TabItem label="字符串写法" value="string">
+    直接写文件路径（相对于语言目录，不带扩展名）：
+
+    ```json
+    "pages": ["getting-started", "components"]
+    ```
+
+    侧边栏标题自动从文件的 frontmatter `title` 读取。
+  </TabItem>
+
+  <TabItem label="对象写法" value="object">
+    手动指定标题和路径：
+
+    ```json
+    "pages": [
+      { "title": "快速开始", "path": "getting-started" },
+      { "title": "配置指南", "path": "guide/configuration" }
+    ]
+    ```
+
+    `title` 覆盖 frontmatter 中的标题，`path` 是相对于语言目录的路径。
+  </TabItem>
+</Tabs>
+
+### 完整示例
+
+```json
+{
+  "navigation": [
+    {
+      "group": "入门",
+      "pages": [
+        "getting-started",
+        { "title": "Markdown 基础语法", "path": "guide/markdown-basics" }
+      ]
+    },
+    {
+      "group": "指南",
+      "pages": [
+        { "title": "配置指南", "path": "guide/configuration" },
+        { "title": "文档目录与导航", "path": "guide/docs-structure" },
+        { "title": "部署指南", "path": "guide/deployment" },
+        { "title": "交互组件", "path": "guide/interactive-components" },
+        { "title": "代码与语法高亮", "path": "guide/code-highlighting" },
+        { "title": "数学公式与图表", "path": "guide/math-and-diagrams" }
+      ]
+    },
+    {
+      "group": "参考",
+      "pages": [
+        "components"
+      ]
+    }
+  ]
+}
+```
+
+### 路径解析规则
+
+`path` 是相对于语言目录的文件路径，不带扩展名：
+
+| pages 中的值 | 实际文件路径 |
+|-------------|------------|
+| `"getting-started"` | `docs/zh/getting-started.mdx` |
+| `"guide/configuration"` | `docs/zh/guide/configuration.mdx` |
+| `"api/v2/endpoints"` | `docs/zh/api/v2/endpoints.mdx` |
+
+系统会依次查找 `.mdx` → `.md`，优先使用 `.mdx`。
+
+### 侧边栏行为
+
+- 分组默认折叠，包含当前页面的分组会自动展开
+- 点击分组标题可切换展开/折叠
+- 当前页面在侧边栏中高亮显示
+- 页面底部的"上一页/下一页"按照 `docs.json` 中的顺序导航
+
+<Callout type="warning" title="注意事项">
+  `docs.json` 中引用的页面必须有对应的文件存在，否则构建时会报错。反过来，如果文件存在但未在 `docs.json` 中引用，该页面不会出现在侧边栏中（但仍可通过 URL 直接访问）。
+</Callout>
+
+---
+
+## 无 docs.json 的回退模式
+
+如果某语言目录下没有 `docs.json`，系统会自动：
+
+1. 递归扫描该目录下的所有 `.md`/`.mdx` 文件
+2. 按子目录名分组（根级文件归入默认组"文档"）
+3. 按文件名字母排序
+
+这种模式适合快速原型，但不推荐在正式项目中使用 — 手动编写 `docs.json` 可以精确控制页面顺序和分组名称。
+
+---
+
+## 添加新语言的完整流程
+
+以添加日语（`ja`）为例：
+
+### 1. 更新 ezdoc.config.ts
+
+```ts
+i18n: {
+  defaultLocale: "zh",
+  locales: [
+    { code: "zh", label: "中文" },
+    { code: "en", label: "English" },
+    { code: "ja", label: "日本語" },
+  ],
+}
+```
+
+### 2. 创建目录和文件
+
+```bash
+mkdir -p docs/ja
+```
+
+### 3. 编写 docs.json
+
+`docs/ja/docs.json`：
+
+```json
+{
+  "navigation": [
+    {
+      "group": "はじめに",
+      "pages": ["getting-started"]
+    }
+  ]
+}
+```
+
+### 4. 编写文档
+
+`docs/ja/getting-started.mdx`：
+
+```mdx
+---
+title: クイックスタート
+description: ezdoc の使い方
+---
+
+## インストール
+
+...
+```
+
+### 5. 构建验证
+
+```bash
+pnpm build
+```
+
+确认 `out/docs/ja/` 目录生成，Header 语言切换器显示三种语言。

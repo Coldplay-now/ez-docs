@@ -1,0 +1,47 @@
+{
+  "navigation": [
+    {
+      "group": "入门",
+      "pages": [
+        "getting-started",
+        { "title": "Markdown 基础语法", "path": "guide/markdown-basics" }
+      ]
+    },
+    {
+      "group": "指南",
+      "pages": [
+        {
+          "group": "基础",
+          "pages": [
+            { "title": "配置指南", "path": "guide/configuration" },
+            { "title": "文档目录与导航", "path": "guide/docs-structure" },
+            { "title": "组件覆盖", "path": "guide/component-overrides" },
+            { "title": "CLI 命令参考", "path": "guide/cli" },
+            { "title": "部署指南", "path": "guide/deployment" }
+          ]
+        },
+        {
+          "group": "进阶",
+          "pages": [
+            { "title": "交互组件", "path": "guide/interactive-components" },
+            { "title": "扩展组件", "path": "guide/extended-components" },
+            { "title": "代码与语法高亮", "path": "guide/code-highlighting" },
+            { "title": "数学公式与图表", "path": "guide/math-and-diagrams" }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "参考",
+      "pages": [
+        "components"
+      ]
+    },
+    {
+      "group": "示例",
+      "pages": [
+        { "title": "为 Claude 构建 Skill", "path": "guide/building-skills-for-claude" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,126 @@
+---
+title: 快速开始
+description: 从安装到写出第一篇文档，5 分钟上手 ezdoc
+---
+
+## 安装
+
+克隆仓库并安装依赖：
+
+```bash
+git clone https://github.com/Coldplay-now/ezdoc.git my-docs
+cd my-docs
+pnpm install
+```
+
+## 项目结构
+
+```text
+my-docs/
+├── docs/                        # 文档根目录
+│   ├── zh/                      # 中文文档
+│   │   ├── docs.json            # 中文导航配置
+│   │   ├── getting-started.mdx
+│   │   └── guide/
+│   │       └── configuration.mdx
+│   └── en/                      # 英文文档
+│       ├── docs.json            # 英文导航配置
+│       └── getting-started.mdx
+├── ezdoc.config.ts              # 项目配置文件
+├── .github/workflows/           # CI/CD 自动部署
+│   ├── deploy-pages.yml
+│   └── deploy-server.yml
+├── next.config.ts
+└── package.json
+```
+
+核心概念：
+
+- **`docs/{locale}/`** — 每种语言一个子目录，相互独立
+- **`docs/{locale}/docs.json`** — 每种语言独立的导航配置
+- **`ezdoc.config.ts`** — 全局配置（站点信息、主题、i18n、部署）
+
+## 本地开发
+
+启动开发服务器：
+
+```bash
+pnpm dev
+```
+
+浏览器访问 `http://localhost:3000`，首页会自动跳转到 `/docs/zh/getting-started`。
+
+## 添加一篇文档
+
+### 1. 创建文件
+
+在 `docs/zh/` 目录下创建 `.mdx` 或 `.md` 文件：
+
+```bash
+docs/zh/guide/my-first-doc.mdx
+```
+
+### 2. 编写 frontmatter 和正文
+
+```mdx
+---
+title: 我的第一篇文档
+description: 这是一段简短的描述
+---
+
+## 标题
+
+正文内容，支持 **Markdown** 和 MDX 组件。
+```
+
+`title` 和 `description` 会显示在页面顶部和 SEO metadata 中。
+
+### 3. 注册到导航
+
+编辑 `docs/zh/docs.json`，将新页面添加到侧边栏：
+
+```json
+{
+  "navigation": [
+    {
+      "group": "指南",
+      "pages": [
+        { "title": "配置指南", "path": "guide/configuration" },
+        { "title": "我的第一篇文档", "path": "guide/my-first-doc" }
+      ]
+    }
+  ]
+}
+```
+
+保存后刷新页面，侧边栏即可看到新文档。
+
+<Callout type="tip" title="省略 title">
+  如果 `pages` 中只写字符串（如 `"getting-started"`），系统会自动读取该文件 frontmatter 中的 `title` 作为侧边栏标题。
+</Callout>
+
+## 多语言
+
+ezdoc 的每种语言完全独立 — 独立的文件目录、独立的导航结构、独立的内容。
+
+添加一种新语言只需三步：
+
+1. 在 `ezdoc.config.ts` 的 `i18n.locales` 中添加语言
+2. 创建 `docs/{locale}/` 目录
+3. 在目录中放入 `docs.json` 和文档文件
+
+Header 右侧的语言切换器会自动显示所有已配置的语言。
+
+## 构建与部署
+
+```bash
+pnpm build        # 生成静态站点到 out/ 目录
+```
+
+推送到 `main` 分支，GitHub Actions 自动构建并部署到 GitHub Pages。
+
+详细的配置和部署说明请参阅：
+
+- [配置指南](/docs/zh/guide/configuration) — ezdoc.config.ts 完整配置项
+- [文档目录与导航](/docs/zh/guide/docs-structure) — docs 目录结构和 docs.json 详解
+- [部署指南](/docs/zh/guide/deployment) — 提交、构建、部署全流程

@@ -1,0 +1,316 @@
+---
+title: Deployment Guide
+description: Complete workflow from local development to production deployment
+---
+
+## Workflow Overview
+
+```text
+Write/edit docs → Preview locally → Git commit → Push to GitHub → Auto build & deploy
+```
+
+ezdoc is a purely static site (Next.js `output: "export"`). The build output is a set of HTML/CSS/JS files that can be deployed to any static hosting service.
+
+---
+
+## Local Development
+
+```bash
+pnpm ezdoc dev
+```
+
+Once the dev server is running:
+- Visit `http://localhost:3000` — the homepage, which auto-redirects to the first page of the default locale
+- Visit `http://localhost:3000/docs/en/getting-started` — directly access a specific page
+- Pages auto-refresh on `.mdx` file changes
+
+<Callout type="tip" title="Config Validation">
+  `ezdoc dev` automatically validates `ezdoc.config.ts` before starting. If the config is invalid, it exits with an error.
+</Callout>
+
+## Local Build
+
+```bash
+pnpm ezdoc build
+```
+
+After the build completes:
+- Config and navigation are automatically validated
+- Static files are output to the `out/` directory
+- Pagefind indexing runs automatically to generate full-text search indexes
+- A build report is output (page count, size, duration)
+- You can preview with any static server:
+
+```bash
+npx serve out
+```
+
+### Building with a Base Path
+
+If deploying under a subpath (e.g., GitHub Pages at `https://user.github.io/repo/`), set `EZDOC_BASE_PATH`:
+
+```bash
+EZDOC_BASE_PATH=/repo pnpm ezdoc build
+```
+
+---
+
+## Git Commits
+
+### Daily Workflow
+
+```bash
+# Check changes
+git status
+
+# Stage changed doc files
+git add docs/
+
+# Commit
+git commit -m "docs: add configuration guide"
+
+# Push to remote
+git push
+```
+
+### Commit Convention Recommendations
+
+| Prefix | Purpose | Example |
+|--------|---------|---------|
+| `docs:` | Documentation changes | `docs: add deployment guide` |
+| `feat:` | Feature changes | `feat: add search functionality` |
+| `fix:` | Bug fixes | `fix: fix sidebar highlighting` |
+| `chore:` | Config/dependency changes | `chore: update ezdoc.config.ts` |
+
+### Common Commit Scenarios
+
+**Adding a new document:**
+
+```bash
+git add docs/en/guide/new-doc.mdx docs/en/docs.json
+git commit -m "docs: add new document"
+git push
+```
+
+**Updating configuration:**
+
+```bash
+git add ezdoc.config.ts
+git commit -m "chore: add Japanese language support"
+git push
+```
+
+**Adding a new language:**
+
+```bash
+git add docs/ja/ ezdoc.config.ts
+git commit -m "feat: add Japanese documentation support"
+git push
+```
+
+---
+
+## Deploy to GitHub Pages
+
+This is the default deployment method, triggered automatically on push to the `main` branch.
+
+### Prerequisites
+
+1. Go to GitHub repo → **Settings** → **Pages**
+2. Set Source to **GitHub Actions**
+
+### How It Works
+
+The project includes a built-in `.github/workflows/deploy-pages.yml` that runs automatically on push to `main`:
+
+```text
+Check if target in ezdoc.config.ts is "github" or "both"
+  ↓ Yes
+pnpm install → pnpm build (EZDOC_BASE_PATH=/ezdoc) → Upload to GitHub Pages
+```
+
+### Configuration
+
+```ts
+// ezdoc.config.ts
+deploy: {
+  target: "github",    // Enable GitHub Pages deployment
+}
+```
+
+<Callout type="info" title="basePath">
+  The `EZDOC_BASE_PATH` in CI is configured in `.github/workflows/deploy-pages.yml`. If your repo name is not `ezdoc`, update the `EZDOC_BASE_PATH: /ezdoc` value in that file to match your repo name.
+</Callout>
+
+---
+
+## Deploy to Your Own Server
+
+Sync build artifacts to your server via rsync + SSH.
+
+### Prerequisites
+
+1. In your GitHub repo → **Settings** → **Secrets and variables** → **Actions**, add:
+
+| Secret | Description | Example |
+|--------|-------------|---------|
+| `SERVER_HOST` | Server IP or domain | `123.45.67.89` |
+| `SERVER_PORT` | SSH port | `22` |
+| `SERVER_USER` | SSH username | `root` |
+| `SERVER_SSH_KEY` | SSH private key (full content) | `-----BEGIN OPENSSH PRIVATE KEY-----...` |
+
+2. Ensure the target directory on your server exists and is writable.
+
+### Configuration
+
+```ts
+// ezdoc.config.ts
+deploy: {
+  target: "server",
+  server: {
+    host: "your-server.com",
+    port: 22,
+    user: "root",
+    path: "/var/www/docs",
+  },
+}
+```
+
+### How It Works
+
+The project includes a built-in `.github/workflows/deploy-server.yml` that runs automatically on push to `main`:
+
+```text
+Check if target in ezdoc.config.ts is "server" or "both"
+  ↓ Yes
+pnpm install → pnpm build → rsync -avzr --delete out/ → Server target directory
+```
+
+<Callout type="warning" title="--delete Flag">
+  rsync uses the `--delete` flag, which removes files from the server target directory that don't exist in the build output. Make sure `server.path` is a directory dedicated to your documentation site.
+</Callout>
+
+---
+
+## Dual Deployment
+
+You can deploy to both GitHub Pages and your own server simultaneously:
+
+```ts
+deploy: {
+  target: "both",
+  server: {
+    host: "your-server.com",
+    port: 22,
+    user: "root",
+    path: "/var/www/docs",
+  },
+}
+```
+
+Both workflows run in parallel without interfering with each other. The GitHub Pages build automatically includes `EZDOC_BASE_PATH`, while the server build defaults to no base path (deployed at the root).
+
+---
+
+## One-Click Deploy
+
+Use the CLI command to build and deploy in one step:
+
+```bash
+pnpm ezdoc deploy
+```
+
+The deployment method is automatically selected based on `deploy.target` (GitHub Pages / server / both).
+
+### Initialize CI Configuration
+
+Use `init-deploy` to auto-generate GitHub Actions workflow files:
+
+```bash
+# GitHub Pages deployment
+pnpm ezdoc init-deploy github
+
+# Server deployment
+pnpm ezdoc init-deploy server
+```
+
+For more CLI commands, see [CLI Command Reference](/docs/en/guide/cli).
+
+---
+
+## Manual Deployment
+
+If you prefer not to use GitHub Actions, you can build and deploy manually:
+
+### Deploy to Any Static Hosting
+
+```bash
+pnpm ezdoc build
+# Upload all files in the out/ directory to your static hosting service
+```
+
+### Manual Server Deployment
+
+```bash
+pnpm ezdoc build
+rsync -avzr --delete out/ user@your-server.com:/var/www/docs/
+```
+
+### Deploy to Other Platforms
+
+The build output consists of standard static files and can be deployed to Vercel, Netlify, Cloudflare Pages, or any platform that supports static sites. Simply use the `out/` directory as the deployment source.
+
+---
+
+## Build Output Structure
+
+After `pnpm build` completes, the `out/` directory structure is as follows:
+
+```text
+out/
+├── index.html                    # Homepage
+├── docs/
+│   ├── index.html                # /docs redirect page
+│   ├── zh/
+│   │   ├── getting-started/
+│   │   │   └── index.html        # /docs/zh/getting-started
+│   │   └── guide/
+│   │       └── configuration/
+│   │           └── index.html    # /docs/zh/guide/configuration
+│   └── en/
+│       └── getting-started/
+│           └── index.html        # /docs/en/getting-started
+├── pagefind/                     # Full-text search index
+├── sitemap.xml                   # Sitemap
+└── robots.txt
+```
+
+Each locale has independently generated pages. The `/docs` page includes auto-redirect logic to the default language.
+
+---
+
+## Troubleshooting
+
+### Build Failures
+
+**"Document not found for slug: xxx"**
+
+A file referenced in docs.json does not exist. Check that the `.mdx`/`.md` file corresponding to the `path` exists.
+
+**TypeScript Type Errors**
+
+If type errors occur during `pnpm build`, it's usually a config file type mismatch. Ensure `ezdoc.config.ts` is wrapped with `defineConfig`.
+
+### GitHub Pages Not Updating
+
+1. Check the GitHub repo → **Actions** tab to confirm the workflow was triggered
+2. Check the workflow logs for error messages
+3. Confirm Settings → Pages → Source is set to **GitHub Actions**
+
+### Search Not Working
+
+The Pagefind index is automatically generated during the postbuild phase of `pnpm build`. If search isn't working:
+
+1. Check the build logs for Pagefind output
+2. Confirm the `out/pagefind/` directory exists
+3. When previewing locally, use `npx serve out` (`pnpm dev` does not include the Pagefind index)

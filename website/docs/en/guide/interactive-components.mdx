@@ -1,0 +1,186 @@
+---
+title: Interactive Components
+description: Guide to ezdoc's built-in MDX interactive components
+---
+
+## Callout
+
+The Callout component provides four types of callout boxes for highlighting information at different levels.
+
+### Info
+
+<Callout type="info" title="About MDX">
+  MDX is a superset of Markdown that allows you to use JSX components directly in your documents.
+  All standard Markdown syntax works in MDX as well.
+</Callout>
+
+### Tip
+
+<Callout type="tip" title="Performance Optimization">
+  Using `pnpm` instead of `npm` can significantly speed up dependency installation
+  while saving disk space (by sharing dependencies via hard links).
+</Callout>
+
+### Warning
+
+<Callout type="warning" title="Version Requirements">
+  ezdoc requires Node.js >= 20 LTS. Please verify your Node.js version before getting started:
+
+  ```bash
+  node --version
+  ```
+</Callout>
+
+### Error
+
+<Callout type="error" title="Breaking Change">
+  When upgrading from v1.x to v2.0, `ezdoc.config.js` has been renamed to `ezdoc.config.ts`.
+  The old JS config file will no longer be recognized. Please migrate as soon as possible.
+</Callout>
+
+### Callout Without Title
+
+<Callout type="info">
+  The `title` prop of Callout is optional. When omitted, only the content area is displayed.
+</Callout>
+
+---
+
+## Tabs
+
+The Tabs component is used to present multiple options or platform-specific content in the same location.
+
+### Package Manager Selection
+
+<Tabs defaultValue="pnpm">
+  <TabItem label="pnpm" value="pnpm">
+    ```bash
+    pnpm install
+    pnpm dev
+    pnpm build
+    ```
+  </TabItem>
+  <TabItem label="npm" value="npm">
+    ```bash
+    npm install
+    npm run dev
+    npm run build
+    ```
+  </TabItem>
+  <TabItem label="yarn" value="yarn">
+    ```bash
+    yarn
+    yarn dev
+    yarn build
+    ```
+  </TabItem>
+  <TabItem label="bun" value="bun">
+    ```bash
+    bun install
+    bun dev
+    bun run build
+    ```
+  </TabItem>
+</Tabs>
+
+### Multi-Language Code Examples
+
+<Tabs defaultValue="ts">
+  <TabItem label="TypeScript" value="ts">
+    ```typescript
+    interface Config {
+      title: string;
+      description?: string;
+      theme: "light" | "dark" | "system";
+    }
+
+    function loadConfig(path: string): Config {
+      const raw = fs.readFileSync(path, "utf-8");
+      return JSON.parse(raw) as Config;
+    }
+    ```
+  </TabItem>
+  <TabItem label="Python" value="py">
+    ```python
+    from dataclasses import dataclass
+    from typing import Optional, Literal
+    import json
+
+    @dataclass
+    class Config:
+        title: str
+        description: Optional[str] = None
+        theme: Literal["light", "dark", "system"] = "system"
+
+    def load_config(path: str) -> Config:
+        with open(path) as f:
+            data = json.load(f)
+        return Config(**data)
+    ```
+  </TabItem>
+  <TabItem label="Go" value="go">
+    ```go
+    type Config struct {
+        Title       string `json:"title"`
+        Description string `json:"description,omitempty"`
+        Theme       string `json:"theme"`
+    }
+
+    func LoadConfig(path string) (*Config, error) {
+        data, err := os.ReadFile(path)
+        if err != nil {
+            return nil, err
+        }
+        var cfg Config
+        if err := json.Unmarshal(data, &cfg); err != nil {
+            return nil, err
+        }
+        return &cfg, nil
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+### Cross-Platform Installation Guide
+
+<Tabs defaultValue="macos">
+  <TabItem label="macOS" value="macos">
+    Install Node.js using Homebrew:
+
+    ```bash
+    brew install node@20
+    ```
+
+    <Callout type="tip">
+      It is recommended to use `fnm` or `nvm` to manage multiple Node.js versions.
+    </Callout>
+  </TabItem>
+  <TabItem label="Windows" value="windows">
+    Install using winget:
+
+    ```powershell
+    winget install OpenJS.NodeJS.LTS
+    ```
+
+    Alternatively, download the installer from the [Node.js website](https://nodejs.org).
+  </TabItem>
+  <TabItem label="Linux" value="linux">
+    Using the NodeSource repository:
+
+    ```bash
+    curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+    sudo apt-get install -y nodejs
+    ```
+  </TabItem>
+</Tabs>
+
+---
+
+## Component Nesting
+
+MDX components can be freely nested to create rich documentation experiences:
+
+<Callout type="tip" title="Combining Components">
+  Nesting Callouts inside Tabs, or using code blocks inside Callouts, is fully supported.
+  There is no limit on nesting depth.
+</Callout>

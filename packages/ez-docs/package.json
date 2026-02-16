@@ -1,0 +1,65 @@
+{
+  "name": "ez-docs",
+  "version": "0.1.0",
+  "description": "开箱即用的文档框架，基于 Next.js 16",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Coldplay-now/ez-docs",
+    "directory": "packages/ez-docs"
+  },
+  "bin": {
+    "ezdoc": "./cli/bin.js"
+  },
+  "exports": {
+    "./config": "./src/lib/config.ts",
+    "./styles": "./src/styles/globals.css"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "gray-matter": "^4.0.3",
+    "katex": "^0.16.28",
+    "lucide-react": "^0.564.0",
+    "next-mdx-remote": "^6.0.0",
+    "next-themes": "^0.4.6",
+    "radix-ui": "^1.4.3",
+    "rehype-autolink-headings": "^7.1.0",
+    "rehype-katex": "^7.0.1",
+    "rehype-mdx-import-media": "^1.2.0",
+    "rehype-pretty-code": "^0.14.1",
+    "rehype-slug": "^6.0.0",
+    "remark-frontmatter": "^5.0.0",
+    "remark-gfm": "^4.0.1",
+    "remark-math": "^6.0.0",
+    "shiki": "^3.22.0",
+    "tailwind-merge": "^3.4.0",
+    "zod": "^4.3.6"
+  },
+  "optionalDependencies": {
+    "mermaid": "^11.12.2"
+  },
+  "peerDependencies": {
+    "next": ">=15",
+    "react": ">=19",
+    "react-dom": ">=19"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/katex": "^0.16.8",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "shadcn": "^3.8.4",
+    "tailwindcss": "^4",
+    "tw-animate-css": "^1.4.0",
+    "typescript": "^5",
+    "vitest": "^4.0.18"
+  }
+}

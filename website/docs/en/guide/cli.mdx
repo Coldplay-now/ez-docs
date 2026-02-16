@@ -1,0 +1,189 @@
+---
+title: CLI Command Reference
+description: Usage guide for the ezdoc command-line tool
+---
+
+ezdoc provides a set of CLI commands to simplify the development, build, and deployment workflow for your documentation site.
+
+## View Help
+
+```bash
+pnpm ezdoc --help
+```
+
+---
+
+## ezdoc dev
+
+Starts the development server. It automatically validates `ezdoc.config.ts` before starting.
+
+```bash
+pnpm ezdoc dev
+```
+
+This is equivalent to `next dev`, but with configuration validation before startup. If the configuration is invalid, error messages will be printed to the terminal and the process will exit, rather than waiting until page rendering to report errors.
+
+---
+
+## ezdoc build
+
+Builds the static site. This is the complete build process, including all steps:
+
+```bash
+pnpm ezdoc build
+```
+
+Execution flow:
+
+<Steps>
+  <Step title="Validate Configuration">
+    Validates the `ezdoc.config.ts` Zod schema
+  </Step>
+  <Step title="Validate Navigation">
+    Validates the `docs.json` format and file references for all languages
+  </Step>
+  <Step title="Build HTML">
+    Runs `next build` to generate static HTML to the output directory
+  </Step>
+  <Step title="Generate Search Index">
+    Runs Pagefind to generate the full-text search index
+  </Step>
+  <Step title="Output Build Report">
+    Displays a summary including page count, languages, output size, and build time
+  </Step>
+</Steps>
+
+Build report example:
+
+```text
+┌──────────────────────────────────────────────┐
+│  ezdoc build 完成                             │
+│                                              │
+│  页面数:     22                               │
+│  语言:       zh, en                           │
+│  输出目录:   out/ (3.2 MB)                    │
+│  构建耗时:   4.8s                             │
+│                                              │
+│  部署目标:   github (basePath: /ezdoc)        │
+│  就绪:       可直接部署                        │
+└──────────────────────────────────────────────┘
+```
+
+---
+
+## ezdoc new
+
+Quickly creates a new documentation page. Automatically creates the file in all language directories.
+
+```bash
+pnpm ezdoc new <path>
+```
+
+Example:
+
+```bash
+pnpm ezdoc new guide/advanced-config
+```
+
+Behavior:
+- Reads `ezdoc.config.ts` to determine the list of languages
+- Creates `docs/{locale}/guide/advanced-config.mdx` for each language
+- Populates the frontmatter template (title + description)
+
+<Callout type="tip" title="Update Navigation Manually">
+  After creating the file, you need to manually edit `docs.json` to add a navigation entry.
+</Callout>
+
+---
+
+## ezdoc check
+
+Validates the project configuration and documentation without performing a build.
+
+```bash
+pnpm ezdoc check
+```
+
+Checks performed:
+
+| Check | Severity | Description |
+|-------|----------|-------------|
+| Configuration validity | error | Zod schema validation of `ezdoc.config.ts` |
+| docs.json validity | error | Navigation configuration format for all languages |
+| File existence | warning | Whether paths referenced in docs.json have corresponding files |
+| Duplicate paths | warning | Whether docs.json contains duplicate paths |
+| Missing translations | warning | Pages that exist in the default language but are missing in other languages |
+| Orphan pages | info | Files that exist but are not referenced in docs.json |
+
+Output example:
+
+```text
+[ezdoc] 检查项目...
+
+  ✓ ezdoc.config.ts 配置合法
+  ✓ docs/zh/docs.json 格式正确
+  ✓ docs/en/docs.json 格式正确
+  ⚠ docs/en: 缺少 guide/configuration 的翻译
+  ℹ docs/zh/components.mdx 未被导航引用
+
+  2 warnings, 1 info
+```
+
+Exit code: 1 if there are errors, 0 if there are only warnings or info messages.
+
+---
+
+## ezdoc deploy
+
+One-command build and deploy. Automatically selects the deployment method based on `deploy.target`.
+
+```bash
+pnpm ezdoc deploy
+```
+
+- `target: "github"` -- Builds and pushes to the `gh-pages` branch
+- `target: "server"` -- Builds and rsyncs to the remote server
+- `target: "both"` -- Executes both deployment methods sequentially
+
+<Callout type="warning" title="Server Deployment Prerequisites">
+  Server deployment requires passwordless SSH access from your local machine to the target server. Make sure the `deploy.server` configuration is correct and SSH keys are properly set up.
+</Callout>
+
+---
+
+## ezdoc init-deploy
+
+Initializes CI deployment configuration by generating GitHub Actions workflow files.
+
+```bash
+pnpm ezdoc init-deploy <target>
+```
+
+<Tabs defaultValue="github">
+  <TabItem label="GitHub Pages" value="github">
+    ```bash
+    pnpm ezdoc init-deploy github
+    ```
+
+    Generates `.github/workflows/deploy.yml` with GitHub Pages auto-deployment configuration.
+
+    Next steps:
+    1. Ensure `deploy.basePath` is set correctly
+    2. In GitHub Settings > Pages, select "GitHub Actions" as the Source
+    3. After `git push`, the build and deployment will run automatically
+  </TabItem>
+
+  <TabItem label="Server" value="server">
+    ```bash
+    pnpm ezdoc init-deploy server
+    ```
+
+    Generates `.github/workflows/deploy.yml` with rsync auto-deployment configuration.
+
+    Next steps: Configure the following in GitHub Settings > Secrets:
+    - `DEPLOY_HOST` -- Server address
+    - `DEPLOY_USER` -- SSH username
+    - `DEPLOY_PATH` -- Deployment path
+    - `SSH_PRIVATE_KEY` -- SSH private key
+  </TabItem>
+</Tabs>

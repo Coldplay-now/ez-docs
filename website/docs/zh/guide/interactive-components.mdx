@@ -1,0 +1,186 @@
+---
+title: 交互组件
+description: ezdoc 内置的 MDX 交互组件使用指南
+---
+
+## Callout 提示框
+
+Callout 组件提供四种类型的提示框，用于高亮不同级别的信息。
+
+### 信息提示
+
+<Callout type="info" title="关于 MDX">
+  MDX 是 Markdown 的超集，允许你在文档中直接使用 JSX 组件。
+  所有标准 Markdown 语法在 MDX 中同样有效。
+</Callout>
+
+### 技巧提示
+
+<Callout type="tip" title="性能优化">
+  使用 `pnpm` 替代 `npm` 可以显著加快依赖安装速度，
+  同时节省磁盘空间（通过硬链接共享依赖）。
+</Callout>
+
+### 警告提示
+
+<Callout type="warning" title="版本要求">
+  ezdoc 要求 Node.js >= 20 LTS。请在开始之前确认你的 Node.js 版本：
+
+  ```bash
+  node --version
+  ```
+</Callout>
+
+### 错误提示
+
+<Callout type="error" title="破坏性变更">
+  从 v1.x 升级到 v2.0 时，`ezdoc.config.js` 已更名为 `ezdoc.config.ts`。
+  旧的 JS 配置文件将不再被识别，请及时迁移。
+</Callout>
+
+### 无标题 Callout
+
+<Callout type="info">
+  Callout 的 `title` 属性是可选的，省略后只显示内容区域。
+</Callout>
+
+---
+
+## Tabs 标签页
+
+Tabs 组件用于在同一位置展示多种方案或多平台内容。
+
+### 包管理器选择
+
+<Tabs defaultValue="pnpm">
+  <TabItem label="pnpm" value="pnpm">
+    ```bash
+    pnpm install
+    pnpm dev
+    pnpm build
+    ```
+  </TabItem>
+  <TabItem label="npm" value="npm">
+    ```bash
+    npm install
+    npm run dev
+    npm run build
+    ```
+  </TabItem>
+  <TabItem label="yarn" value="yarn">
+    ```bash
+    yarn
+    yarn dev
+    yarn build
+    ```
+  </TabItem>
+  <TabItem label="bun" value="bun">
+    ```bash
+    bun install
+    bun dev
+    bun run build
+    ```
+  </TabItem>
+</Tabs>
+
+### 多语言代码示例
+
+<Tabs defaultValue="ts">
+  <TabItem label="TypeScript" value="ts">
+    ```typescript
+    interface Config {
+      title: string;
+      description?: string;
+      theme: "light" | "dark" | "system";
+    }
+
+    function loadConfig(path: string): Config {
+      const raw = fs.readFileSync(path, "utf-8");
+      return JSON.parse(raw) as Config;
+    }
+    ```
+  </TabItem>
+  <TabItem label="Python" value="py">
+    ```python
+    from dataclasses import dataclass
+    from typing import Optional, Literal
+    import json
+
+    @dataclass
+    class Config:
+        title: str
+        description: Optional[str] = None
+        theme: Literal["light", "dark", "system"] = "system"
+
+    def load_config(path: str) -> Config:
+        with open(path) as f:
+            data = json.load(f)
+        return Config(**data)
+    ```
+  </TabItem>
+  <TabItem label="Go" value="go">
+    ```go
+    type Config struct {
+        Title       string `json:"title"`
+        Description string `json:"description,omitempty"`
+        Theme       string `json:"theme"`
+    }
+
+    func LoadConfig(path string) (*Config, error) {
+        data, err := os.ReadFile(path)
+        if err != nil {
+            return nil, err
+        }
+        var cfg Config
+        if err := json.Unmarshal(data, &cfg); err != nil {
+            return nil, err
+        }
+        return &cfg, nil
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+### 多平台安装指南
+
+<Tabs defaultValue="macos">
+  <TabItem label="macOS" value="macos">
+    使用 Homebrew 安装 Node.js：
+
+    ```bash
+    brew install node@20
+    ```
+
+    <Callout type="tip">
+      推荐使用 `fnm` 或 `nvm` 来管理多个 Node.js 版本。
+    </Callout>
+  </TabItem>
+  <TabItem label="Windows" value="windows">
+    使用 winget 安装：
+
+    ```powershell
+    winget install OpenJS.NodeJS.LTS
+    ```
+
+    或者从 [Node.js 官网](https://nodejs.org) 下载安装包。
+  </TabItem>
+  <TabItem label="Linux" value="linux">
+    使用 NodeSource 仓库：
+
+    ```bash
+    curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+    sudo apt-get install -y nodejs
+    ```
+  </TabItem>
+</Tabs>
+
+---
+
+## 组件嵌套
+
+MDX 组件可以自由嵌套使用，创造丰富的文档体验：
+
+<Callout type="tip" title="组合使用">
+  在 Tabs 中嵌套 Callout，或在 Callout 中使用代码块，都是完全支持的。
+  组件的嵌套层级没有限制。
+</Callout>

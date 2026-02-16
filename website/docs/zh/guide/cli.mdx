@@ -1,0 +1,189 @@
+---
+title: CLI 命令参考
+description: ezdoc 命令行工具使用说明
+---
+
+ezdoc 提供了一组 CLI 命令，简化文档站点的开发、构建和部署流程。
+
+## 查看帮助
+
+```bash
+pnpm ezdoc --help
+```
+
+---
+
+## ezdoc dev
+
+启动开发服务器。启动前会自动校验 `ezdoc.config.ts` 配置。
+
+```bash
+pnpm ezdoc dev
+```
+
+等价于 `next dev`，但在启动前运行配置校验。如果配置有误，会在终端输出错误信息并退出，而不是等到页面渲染时才报错。
+
+---
+
+## ezdoc build
+
+构建静态站点。这是完整的构建流程，包含所有步骤：
+
+```bash
+pnpm ezdoc build
+```
+
+执行流程：
+
+<Steps>
+  <Step title="校验配置">
+    校验 `ezdoc.config.ts` 的 Zod schema
+  </Step>
+  <Step title="校验导航">
+    校验所有语言的 `docs.json` 格式和文件引用
+  </Step>
+  <Step title="构建 HTML">
+    运行 `next build`，生成静态 HTML 到输出目录
+  </Step>
+  <Step title="生成搜索索引">
+    运行 Pagefind，为全文搜索生成索引
+  </Step>
+  <Step title="输出构建报告">
+    显示页面数、语言、输出大小、耗时等摘要信息
+  </Step>
+</Steps>
+
+构建报告示例：
+
+```text
+┌──────────────────────────────────────────────┐
+│  ezdoc build 完成                             │
+│                                              │
+│  页面数:     22                               │
+│  语言:       zh, en                           │
+│  输出目录:   out/ (3.2 MB)                    │
+│  构建耗时:   4.8s                             │
+│                                              │
+│  部署目标:   github (basePath: /ezdoc)        │
+│  就绪:       可直接部署                        │
+└──────────────────────────────────────────────┘
+```
+
+---
+
+## ezdoc new
+
+快速创建新文档页。自动在所有语言目录下创建文件。
+
+```bash
+pnpm ezdoc new <path>
+```
+
+示例：
+
+```bash
+pnpm ezdoc new guide/advanced-config
+```
+
+行为：
+- 读取 `ezdoc.config.ts` 确定语言列表
+- 对每个语言创建 `docs/{locale}/guide/advanced-config.mdx`
+- 填充 frontmatter 模板（title + description）
+
+<Callout type="tip" title="手动更新导航">
+  创建文件后需要手动编辑 `docs.json` 添加导航条目。
+</Callout>
+
+---
+
+## ezdoc check
+
+校验项目配置和文档，不执行构建。
+
+```bash
+pnpm ezdoc check
+```
+
+检查项：
+
+| 检查 | 类型 | 说明 |
+|------|------|------|
+| 配置合法性 | error | `ezdoc.config.ts` 的 Zod schema 校验 |
+| docs.json 合法性 | error | 所有语言的导航配置格式 |
+| 文件存在性 | warning | docs.json 中引用的 path 是否有对应文件 |
+| 重复路径 | warning | docs.json 中是否有重复的 path |
+| 缺失翻译 | warning | 默认语言有但其他语言缺失的页面 |
+| 孤儿页面 | info | 存在文件但未被 docs.json 引用 |
+
+输出示例：
+
+```text
+[ezdoc] 检查项目...
+
+  ✓ ezdoc.config.ts 配置合法
+  ✓ docs/zh/docs.json 格式正确
+  ✓ docs/en/docs.json 格式正确
+  ⚠ docs/en: 缺少 guide/configuration 的翻译
+  ℹ docs/zh/components.mdx 未被导航引用
+
+  2 warnings, 1 info
+```
+
+退出码：有 error 时为 1，只有 warning/info 时为 0。
+
+---
+
+## ezdoc deploy
+
+一键构建并部署。根据 `deploy.target` 自动选择部署方式。
+
+```bash
+pnpm ezdoc deploy
+```
+
+- `target: "github"` — 构建后推送到 `gh-pages` 分支
+- `target: "server"` — 构建后 rsync 到远程服务器
+- `target: "both"` — 依次执行两种部署
+
+<Callout type="warning" title="服务器部署前置条件">
+  服务器部署需要本地可以通过 SSH 免密连接到目标服务器。确保 `deploy.server` 配置正确且 SSH 密钥已配置。
+</Callout>
+
+---
+
+## ezdoc init-deploy
+
+初始化 CI 部署配置，生成 GitHub Actions workflow 文件。
+
+```bash
+pnpm ezdoc init-deploy <target>
+```
+
+<Tabs defaultValue="github">
+  <TabItem label="GitHub Pages" value="github">
+    ```bash
+    pnpm ezdoc init-deploy github
+    ```
+
+    生成 `.github/workflows/deploy.yml`，配置 GitHub Pages 自动部署。
+
+    后续步骤：
+    1. 确保 `deploy.basePath` 设置正确
+    2. 在 GitHub Settings → Pages 中选择 "GitHub Actions" 作为 Source
+    3. `git push` 后自动构建部署
+  </TabItem>
+
+  <TabItem label="服务器" value="server">
+    ```bash
+    pnpm ezdoc init-deploy server
+    ```
+
+    生成 `.github/workflows/deploy.yml`，配置 rsync 自动部署。
+
+    后续步骤：在 GitHub Settings → Secrets 中配置：
+    - `DEPLOY_HOST` — 服务器地址
+    - `DEPLOY_USER` — SSH 用户名
+    - `DEPLOY_PATH` — 部署路径
+    - `SSH_PRIVATE_KEY` — SSH 私钥
+  </TabItem>
+</Tabs>

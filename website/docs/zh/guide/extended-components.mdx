@@ -1,0 +1,224 @@
+---
+title: 扩展组件
+description: ezdoc 提供的扩展 MDX 组件：Steps、Card、Accordion、FileTree、Badge、Video、ImageZoom、Tooltip
+---
+
+## Steps 步骤
+
+使用 `Steps` 和 `Step` 展示有序的操作流程：
+
+<Steps>
+  <Step title="安装依赖">
+    克隆仓库并安装项目依赖：
+
+    ```bash
+    git clone https://github.com/Coldplay-now/ezdoc.git
+    cd ezdoc && pnpm install
+    ```
+  </Step>
+  <Step title="编写文档">
+    在 `docs/zh/` 目录下新建 `.mdx` 文件，添加 frontmatter 和内容。
+  </Step>
+  <Step title="本地预览">
+    运行 `pnpm dev` 启动开发服务器，在浏览器中查看效果。
+  </Step>
+  <Step title="构建部署">
+    运行 `pnpm build` 生成静态文件，部署到 GitHub Pages 或任意静态托管服务。
+  </Step>
+</Steps>
+
+### 语法
+
+```mdx
+<Steps>
+  <Step title="第一步">
+    步骤内容，支持 **Markdown** 和代码块。
+  </Step>
+  <Step title="第二步">
+    更多内容...
+  </Step>
+</Steps>
+```
+
+---
+
+## Card 卡片
+
+使用 `Card` 和 `CardGroup` 展示功能导航或信息卡片：
+
+<CardGroup cols={3}>
+  <Card title="快速开始" icon="🚀" href="/docs/zh/getting-started">
+    5 分钟上手 ezdoc，从安装到写出第一篇文档。
+  </Card>
+  <Card title="配置指南" icon="⚙️" href="/docs/zh/guide/configuration">
+    站点配置、主题、多语言等完整参考。
+  </Card>
+  <Card title="部署指南" icon="📦" href="/docs/zh/guide/deployment">
+    GitHub Pages、服务器部署详细说明。
+  </Card>
+</CardGroup>
+
+### 两列布局
+
+<CardGroup cols={2}>
+  <Card title="Markdown 支持" icon="📝">
+    完整的 GFM 语法支持，包括表格、任务列表、删除线等。
+  </Card>
+  <Card title="MDX 组件" icon="🧩">
+    丰富的内置组件，让文档更具表现力。
+  </Card>
+</CardGroup>
+
+### 语法
+
+```mdx
+<CardGroup cols={2}>
+  <Card title="标题" icon="🚀" href="/docs/zh/getting-started">
+    卡片描述内容。
+  </Card>
+</CardGroup>
+```
+
+| 属性 | 说明 | 默认值 |
+|------|------|--------|
+| `cols` | CardGroup 列数（2/3/4） | `2` |
+| `title` | Card 标题 | 必填 |
+| `icon` | Card 图标（emoji） | 可选 |
+| `href` | Card 链接地址 | 可选 |
+
+---
+
+## Accordion 折叠面板
+
+使用 `Accordion` 和 `AccordionItem` 创建可展开/折叠的内容区域：
+
+<Accordion>
+  <AccordionItem title="ezdoc 支持哪些 Markdown 语法？">
+    ezdoc 完整支持 GitHub Flavored Markdown（GFM），包括表格、任务列表、删除线、自动链接等。此外还支持数学公式（KaTeX）和 Mermaid 图表。
+  </AccordionItem>
+  <AccordionItem title="如何添加新的文档页面？">
+    在 `docs/zh/` 目录下创建 `.mdx` 文件，然后在 `docs/zh/docs.json` 的 navigation 中添加对应的路径即可。
+  </AccordionItem>
+  <AccordionItem title="支持多语言吗？">
+    支持。在 `ezdoc.config.ts` 中配置 `i18n.locales`，然后为每种语言创建独立的文档目录（如 `docs/en/`）和导航文件。
+  </AccordionItem>
+</Accordion>
+
+### 语法
+
+```mdx
+<Accordion>
+  <AccordionItem title="问题标题">
+    回答内容，支持 **Markdown** 格式。
+  </AccordionItem>
+</Accordion>
+```
+
+---
+
+## FileTree 文件树
+
+使用 `FileTree` 展示项目目录结构：
+
+<FileTree json='["docs/", ["zh/", ["docs.json", "getting-started.mdx", "components.mdx", "guide/", ["configuration.mdx", "deployment.mdx", "extended-components.mdx"]], "en/", ["docs.json", "getting-started.mdx"]], "ezdoc.config.ts", "package.json"]' />
+
+### 语法
+
+通过 `json` 属性传入 JSON 格式的数组字符串。文件夹名称以 `/` 结尾，紧跟一个子数组表示其内容。文件名不带 `/`。
+
+```mdx
+<FileTree json='["src/", ["components/", ["Button.tsx", "Header.tsx"], "lib/", ["utils.ts"]], "package.json"]' />
+```
+
+---
+
+## Badge 徽章
+
+使用 `Badge` 展示状态标签：
+
+- <Badge>默认</Badge> — 通用标签
+- <Badge variant="success">稳定</Badge> — 功能已稳定
+- <Badge variant="warning">实验性</Badge> — 实验性功能
+- <Badge variant="error">已废弃</Badge> — 不再推荐使用
+
+### 语法
+
+```mdx
+<Badge>默认</Badge>
+<Badge variant="success">稳定</Badge>
+<Badge variant="warning">实验性</Badge>
+<Badge variant="error">已废弃</Badge>
+```
+
+| variant | 说明 |
+|---------|------|
+| `default` | 灰色，默认值 |
+| `success` | 绿色 |
+| `warning` | 黄色 |
+| `error` | 红色 |
+
+---
+
+## Video 视频嵌入
+
+使用 `Video` 嵌入视频内容，自动识别 YouTube、Bilibili 或本地视频：
+
+### YouTube 视频
+
+<Video src="https://www.youtube.com/watch?v=dQw4w9WgXcQ" title="YouTube 示例视频" />
+
+### Bilibili 视频
+
+<Video src="https://www.bilibili.com/video/BV1xx411c7mD" title="Bilibili 示例视频" />
+
+### 语法
+
+```mdx
+<Video src="https://www.youtube.com/watch?v=dQw4w9WgXcQ" title="视频标题" />
+<Video src="https://www.bilibili.com/video/BV1xx411c7mD" title="视频标题" />
+<Video src="/videos/demo.mp4" title="本地视频" />
+```
+
+| 属性 | 说明 | 默认值 |
+|------|------|--------|
+| `src` | 视频地址（YouTube/Bilibili URL 或本地路径） | 必填 |
+| `title` | 视频标题（显示在底部） | 可选 |
+
+---
+
+## ImageZoom 图片放大
+
+使用 `ImageZoom` 让图片支持点击放大查看：
+
+<ImageZoom src="https://github.githubassets.com/assets/github-logo-55c5b2b2feaa.png" alt="GitHub Logo" />
+
+点击上方图片可全屏查看，按 `ESC` 或点击背景关闭。
+
+### 语法
+
+```mdx
+<ImageZoom src="/images/screenshot.png" alt="截图说明" />
+```
+
+| 属性 | 说明 | 默认值 |
+|------|------|--------|
+| `src` | 图片地址 | 必填 |
+| `alt` | 替代文本 | 可选 |
+| `width` | 图片宽度 | 可选 |
+| `height` | 图片高度 | 可选 |
+
+---
+
+## Tooltip 悬浮提示
+
+使用 `Tooltip` 为术语或文本添加悬浮提示：
+
+ezdoc 使用 <Tooltip content="一种将 Markdown 与 JSX 组件结合的格式">MDX</Tooltip> 格式编写文档，支持 <Tooltip content="GitHub Flavored Markdown，GitHub 风格的 Markdown 扩展语法">GFM</Tooltip> 语法，并通过 <Tooltip content="一个静态搜索引擎，在构建时生成索引">Pagefind</Tooltip> 提供全文搜索。
+
+### 语法
+
+```mdx
+<Tooltip content="提示内容">被标注的文本</Tooltip>
+```
+
+鼠标悬浮在带虚线下划线的文本上即可看到提示。

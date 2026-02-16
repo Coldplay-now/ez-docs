@@ -1,0 +1,219 @@
+---
+title: 代码与语法高亮
+description: Shiki 驱动的多语言语法高亮，支持亮暗双主题
+---
+
+## 语法高亮
+
+ezdoc 使用 [Shiki](https://shiki.style) 作为语法高亮引擎，在构建时生成精确的 token 级着色，支持 100+ 编程语言。亮色和暗色主题使用独立配色方案（github-light / github-dark），随主题切换自动变化。
+
+### TypeScript
+
+```typescript
+import { defineConfig } from "./src/lib/config";
+
+export default defineConfig({
+  site: {
+    title: "ezdoc",
+    description: "基于 Git 仓库的文档管理与渲染系统",
+    socials: {
+      github: "https://github.com/Coldplay-now/ezdoc",
+    },
+  },
+  theme: {
+    defaultMode: "system",
+    primaryColor: "#3b82f6",
+  },
+});
+```
+
+### React / JSX
+
+```tsx
+interface ButtonProps {
+  variant?: "primary" | "secondary" | "ghost";
+  size?: "sm" | "md" | "lg";
+  children: React.ReactNode;
+  onClick?: () => void;
+}
+
+export function Button({ variant = "primary", size = "md", children, onClick }: ButtonProps) {
+  return (
+    <button
+      className={cn("rounded-lg font-medium transition-colors", variantStyles[variant], sizeStyles[size])}
+      onClick={onClick}
+    >
+      {children}
+    </button>
+  );
+}
+```
+
+### Python
+
+```python
+from pathlib import Path
+from typing import AsyncIterator
+import asyncio
+
+async def watch_docs(directory: Path) -> AsyncIterator[Path]:
+    """Watch a directory for markdown file changes."""
+    seen: dict[Path, float] = {}
+
+    while True:
+        for path in directory.rglob("*.md"):
+            mtime = path.stat().st_mtime
+            if path not in seen or seen[path] < mtime:
+                seen[path] = mtime
+                yield path
+
+        await asyncio.sleep(1.0)
+
+async def main():
+    async for changed in watch_docs(Path("./docs")):
+        print(f"Changed: {changed}")
+```
+
+### Rust
+
+```rust
+use std::collections::HashMap;
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Serialize, Deserialize)]
+struct DocConfig {
+    title: String,
+    description: Option<String>,
+    navigation: Vec<NavGroup>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct NavGroup {
+    group: String,
+    pages: Vec<String>,
+}
+
+fn load_config(path: &str) -> Result<DocConfig, Box<dyn std::error::Error>> {
+    let content = std::fs::read_to_string(path)?;
+    let config: DocConfig = serde_json::from_str(&content)?;
+    Ok(config)
+}
+```
+
+### SQL
+
+```sql
+-- 查询文档访问统计
+SELECT
+    d.slug,
+    d.title,
+    COUNT(v.id) AS view_count,
+    COUNT(DISTINCT v.visitor_id) AS unique_visitors,
+    AVG(v.reading_time_seconds) AS avg_reading_time
+FROM documents d
+LEFT JOIN page_views v ON v.document_id = d.id
+WHERE v.created_at >= NOW() - INTERVAL '30 days'
+GROUP BY d.slug, d.title
+ORDER BY view_count DESC
+LIMIT 20;
+```
+
+### YAML
+
+```yaml
+# GitHub Actions workflow
+name: Deploy Documentation
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+        env:
+          EZDOC_BASE_PATH: /ezdoc
+```
+
+### CSS
+
+```css
+/* 自适应三栏布局 */
+.docs-layout {
+  display: grid;
+  grid-template-columns: 16rem 1fr 14rem;
+  gap: 2rem;
+  min-height: calc(100vh - 4rem);
+}
+
+@media (max-width: 1280px) {
+  .docs-layout {
+    grid-template-columns: 16rem 1fr;
+  }
+}
+
+@media (max-width: 1024px) {
+  .docs-layout {
+    grid-template-columns: 1fr;
+  }
+}
+```
+
+### Shell
+
+```bash
+#!/bin/bash
+set -euo pipefail
+
+echo "🔨 Building ezdoc..."
+pnpm install --frozen-lockfile
+
+# Build with GitHub Pages base path
+EZDOC_BASE_PATH="/ezdoc" pnpm build
+
+# Check output size
+echo "📦 Output size:"
+du -sh out/
+
+echo "✅ Build complete!"
+```
+
+### JSON
+
+```json
+{
+  "navigation": [
+    {
+      "group": "入门",
+      "pages": [
+        "getting-started",
+        { "title": "Markdown 基础", "path": "guide/markdown-basics" }
+      ]
+    },
+    {
+      "group": "进阶",
+      "pages": [
+        { "title": "交互组件", "path": "guide/interactive-components" },
+        { "title": "代码高亮", "path": "guide/code-highlighting" }
+      ]
+    }
+  ]
+}
+```
+
+---
+
+## 行内代码
+
+行内代码使用反引号包裹：配置文件 `ezdoc.config.ts`、命令 `pnpm build`、类型 `Record<string, unknown>` 等。行内代码会自动应用等宽字体和背景色，与正文形成视觉区分。

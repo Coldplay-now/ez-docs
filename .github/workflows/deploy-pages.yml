@@ -1,0 +1,78 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  check-target:
+    runs-on: ubuntu-latest
+    outputs:
+      deploy-github: ${{ steps.read-config.outputs.deploy-github }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read deploy target from config
+        id: read-config
+        run: |
+          TARGET=$(node -e "
+            const fs = require('fs');
+            const content = fs.readFileSync('ezdoc.config.ts', 'utf-8');
+            const match = content.match(/target:\s*['\"](\w+)['\"]/);
+            console.log(match ? match[1] : 'github');
+          ")
+          if [ "$TARGET" = "github" ] || [ "$TARGET" = "both" ]; then
+            echo "deploy-github=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "deploy-github=false" >> "$GITHUB_OUTPUT"
+          fi
+          echo "Deploy target: $TARGET → GitHub Pages: $( [ "$TARGET" = "github" ] || [ "$TARGET" = "both" ] && echo yes || echo no )"
+
+  build:
+    needs: check-target
+    if: needs.check-target.outputs.deploy-github == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+        env:
+          EZDOC_BASE_PATH: /ezdoc
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: out
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,126 @@
+---
+title: Markdown Basics
+description: Complete Markdown syntax reference supported by ezdoc
+---
+
+## Heading Levels
+
+Documents support three levels of headings from h2 to h4. Each heading automatically generates an anchor link for quick navigation.
+
+### Third-Level Heading Example
+
+#### Fourth-Level Heading Example
+
+---
+
+## Text Formatting
+
+| Syntax | Result |
+|--------|--------|
+| `**bold**` | **Bold text** |
+| `*italic*` | *Italic text* |
+| `~~strikethrough~~` | ~~Strikethrough text~~ |
+| `` `inline code` `` | `inline code` |
+| `**_bold italic_**` | **_Bold italic text_** |
+
+## Links
+
+- External links: [GitHub](https://github.com) automatically opens in a new tab
+- Internal links: [Back to Getting Started](/docs/en/getting-started) uses client-side routing
+- Anchor links: [Jump to Tables section](#tables)
+
+## Blockquotes
+
+> This is a blockquote. Blockquotes are useful for emphasizing important notes or citing others.
+>
+> Blockquotes can contain multiple paragraphs and nest other formatting like **bold** and `code`.
+
+## Lists
+
+### Unordered Lists
+
+- First item
+- Second item
+  - Nested item A
+  - Nested item B
+- Third item
+
+### Ordered Lists
+
+1. Clone the repository
+2. Install dependencies
+3. Start the dev server
+4. Start writing documentation
+
+### Task Lists
+
+- [x] Project initialization
+- [x] Configuration system setup
+- [x] MDX compilation engine
+- [ ] Full-text search
+- [ ] Internationalization support
+
+## Tables
+
+### Basic Table
+
+| Feature | Status | Description |
+|---------|:------:|-------------|
+| Markdown rendering | ✅ | Full GFM support |
+| MDX components | ✅ | Callout / Tabs / CodeBlock |
+| Syntax highlighting | ✅ | Shiki dual themes |
+| Math formulas | ✅ | KaTeX compile-time rendering |
+| Mermaid diagrams | ✅ | Client-side rendering |
+| Dark mode | ✅ | Light / Dark / System |
+| Full-text search | 🚧 | Pagefind planned |
+
+### Wide Table (Horizontally Scrollable)
+
+| Command | Purpose | Use Case | Example | Notes |
+|---------|---------|----------|---------|-------|
+| `pnpm dev` | Start dev server | Local development | `pnpm dev` | Hot reload supported |
+| `pnpm build` | Production build | CI/CD deployment | `EZDOC_BASE_PATH=/ezdoc pnpm build` | Static output |
+| `pnpm lint` | Code linting | Pre-commit check | `pnpm lint` | ESLint |
+
+## Code
+
+### Inline Code
+
+Use `pnpm install` to install dependencies. The configuration file is located in `ezdoc.config.ts`.
+
+### Code Blocks
+
+```bash
+# Clone the repository
+git clone https://github.com/Coldplay-now/ezdoc.git
+cd ezdoc
+
+# Install dependencies and start
+pnpm install
+pnpm dev
+```
+
+```json
+{
+  "navigation": [
+    {
+      "group": "Getting Started",
+      "pages": ["getting-started"]
+    }
+  ]
+}
+```
+
+## Images
+
+Standard Markdown image syntax:
+
+![GitHub Mark](https://github.githubassets.com/favicons/favicon.svg)
+
+## Horizontal Rules
+
+Content above
+
+---
+
+Content below. Horizontal rules are used to visually separate different topics within the same page.

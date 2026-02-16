@@ -1,0 +1,190 @@
+---
+title: 数学公式与图表
+description: KaTeX 数学公式和 Mermaid 图表渲染
+---
+
+## 数学公式
+
+ezdoc 使用 KaTeX 在构建时编译数学公式，无需客户端 JavaScript，渲染速度极快。
+
+### 行内公式
+
+在正文中使用 `$...$` 插入行内公式：
+
+- 质能方程 $E = mc^2$ 揭示了质量与能量的等价关系
+- 欧拉恒等式 $e^{i\pi} + 1 = 0$ 被誉为最优美的数学公式
+- 二次方程求根公式 $x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}$
+- 勾股定理 $a^2 + b^2 = c^2$
+
+### 块级公式
+
+使用 `$$...$$` 创建居中显示的块级公式：
+
+**高斯积分**
+
+$$
+\int_{-\infty}^{\infty} e^{-x^2} \, dx = \sqrt{\pi}
+$$
+
+**欧拉公式**
+
+$$
+e^{ix} = \cos x + i \sin x
+$$
+
+**巴塞尔问题**
+
+$$
+\sum_{n=1}^{\infty} \frac{1}{n^2} = \frac{\pi^2}{6}
+$$
+
+**麦克斯韦方程组**
+
+$$
+\begin{aligned}
+\nabla \cdot \mathbf{E} &= \frac{\rho}{\varepsilon_0} \\
+\nabla \cdot \mathbf{B} &= 0 \\
+\nabla \times \mathbf{E} &= -\frac{\partial \mathbf{B}}{\partial t} \\
+\nabla \times \mathbf{B} &= \mu_0 \mathbf{J} + \mu_0 \varepsilon_0 \frac{\partial \mathbf{E}}{\partial t}
+\end{aligned}
+$$
+
+**矩阵运算**
+
+$$
+\mathbf{A} = \begin{pmatrix}
+a_{11} & a_{12} & a_{13} \\
+a_{21} & a_{22} & a_{23} \\
+a_{31} & a_{32} & a_{33}
+\end{pmatrix}, \quad
+\det(\mathbf{A}) = \sum_{\sigma \in S_3} \text{sgn}(\sigma) \prod_{i=1}^{3} a_{i,\sigma(i)}
+$$
+
+**贝叶斯定理**
+
+$$
+P(A \mid B) = \frac{P(B \mid A) \, P(A)}{P(B)}
+$$
+
+---
+
+## Mermaid 图表
+
+ezdoc 支持 Mermaid 图表的客户端渲染，会自动跟随亮暗主题切换配色。
+
+### 流程图
+
+```mermaid
+graph TD
+    A[编写 MDX 文档] --> B[Git 提交]
+    B --> C{触发 CI}
+    C -->|GitHub Actions| D[pnpm build]
+    D --> E[生成静态页面]
+    E --> F[部署到 GitHub Pages]
+    C -->|本地| G[pnpm dev]
+    G --> H[热更新预览]
+```
+
+### 时序图
+
+```mermaid
+sequenceDiagram
+    participant U as 用户
+    participant B as 浏览器
+    participant S as 静态服务器
+    participant G as GitHub
+
+    U->>B: 访问文档站点
+    B->>S: 请求 HTML
+    S-->>B: 返回预渲染页面
+    B->>B: 客户端水合
+    B->>B: Mermaid 图表渲染
+
+    Note over U,G: 文档更新流程
+    U->>G: git push
+    G->>G: GitHub Actions 构建
+    G->>S: 部署新版本
+```
+
+### 状态图
+
+```mermaid
+stateDiagram-v2
+    [*] --> 草稿
+    草稿 --> 审核中: 提交审核
+    审核中 --> 已发布: 审核通过
+    审核中 --> 草稿: 需要修改
+    已发布 --> 已归档: 归档
+    已归档 --> [*]
+```
+
+### 甘特图
+
+```mermaid
+gantt
+    title ezdoc 开发计划
+    dateFormat YYYY-MM-DD
+    section 基础设施
+        项目初始化       :done, t1, 2025-01-01, 1d
+        配置体系         :done, t2, after t1, 1d
+        MDX 编译引擎     :done, t3, after t2, 2d
+        导航解析引擎     :done, t4, after t2, 2d
+    section 渲染能力
+        组件映射         :done, t5, after t3, 1d
+        内置组件         :done, t6, after t3, 2d
+        KaTeX 公式       :done, t7, after t3, 1d
+        Mermaid 图表     :done, t8, after t5, 1d
+    section 页面系统
+        三栏布局         :done, t9, after t6, 2d
+        暗色模式         :done, t10, after t9, 1d
+    section 进阶功能
+        全文搜索         :t12, after t10, 3d
+        国际化           :t13, after t10, 2d
+```
+
+### 饼图
+
+```mermaid
+pie title ezdoc 技术栈占比
+    "Next.js" : 30
+    "React" : 20
+    "Tailwind CSS" : 15
+    "MDX/Remark/Rehype" : 20
+    "Shiki" : 8
+    "Mermaid" : 4
+    "KaTeX" : 3
+```
+
+### 类图
+
+```mermaid
+classDiagram
+    class EzdocConfig {
+        +SiteConfig site
+        +DocsConfig docs
+        +ThemeConfig theme
+        +I18nConfig i18n
+        +DeployConfig deploy
+    }
+
+    class SiteConfig {
+        +string title
+        +string description
+        +string logo
+        +Record socials
+    }
+
+    class DocsConfig {
+        +string dir
+        +string nav
+    }
+
+    class ThemeConfig {
+        +string defaultMode
+        +string primaryColor
+    }
+
+    EzdocConfig *-- SiteConfig
+    EzdocConfig *-- DocsConfig
+    EzdocConfig *-- ThemeConfig
+```

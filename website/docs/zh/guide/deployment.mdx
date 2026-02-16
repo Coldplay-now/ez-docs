@@ -1,0 +1,316 @@
+---
+title: 部署指南
+description: 从本地开发到线上部署的完整流程
+---
+
+## 工作流概览
+
+```text
+编写/修改文档 → 本地预览 → Git 提交 → 推送到 GitHub → 自动构建部署
+```
+
+ezdoc 是纯静态站点（Next.js `output: "export"`），构建产物是一组 HTML/CSS/JS 文件，可以部署到任何静态托管服务。
+
+---
+
+## 本地开发
+
+```bash
+pnpm ezdoc dev
+```
+
+开发服务器启动后：
+- 访问 `http://localhost:3000` — 首页，自动跳转到默认语言的第一篇文档
+- 访问 `http://localhost:3000/docs/zh/getting-started` — 直接访问指定页面
+- 修改 `.mdx` 文件后页面自动热更新
+
+<Callout type="tip" title="配置校验">
+  `ezdoc dev` 在启动前自动校验 `ezdoc.config.ts`，配置有误时直接报错退出。
+</Callout>
+
+## 本地构建
+
+```bash
+pnpm ezdoc build
+```
+
+构建完成后：
+- 自动校验配置和导航
+- 静态文件输出到 `out/` 目录
+- 自动运行 Pagefind 索引，为全文搜索生成索引文件
+- 输出构建报告（页面数、大小、耗时）
+- 可以用任意静态服务器预览：
+
+```bash
+npx serve out
+```
+
+### 带子路径构建
+
+如果部署在子路径下（如 GitHub Pages 的 `https://user.github.io/repo/`），需要设置 `EZDOC_BASE_PATH`：
+
+```bash
+EZDOC_BASE_PATH=/repo pnpm ezdoc build
+```
+
+---
+
+## Git 提交
+
+### 日常工作流
+
+```bash
+# 查看变更
+git status
+
+# 添加变更的文档文件
+git add docs/
+
+# 提交
+git commit -m "docs: 添加配置指南"
+
+# 推送到远程
+git push
+```
+
+### 提交规范建议
+
+| 前缀 | 用途 | 示例 |
+|------|------|------|
+| `docs:` | 文档内容变更 | `docs: 添加部署指南` |
+| `feat:` | 功能变更 | `feat: 添加搜索功能` |
+| `fix:` | 修复问题 | `fix: 修复侧边栏高亮` |
+| `chore:` | 配置/依赖变更 | `chore: 更新 ezdoc.config.ts` |
+
+### 常见提交场景
+
+**添加一篇新文档：**
+
+```bash
+git add docs/zh/guide/new-doc.mdx docs/zh/docs.json
+git commit -m "docs: 添加新文档"
+git push
+```
+
+**更新配置：**
+
+```bash
+git add ezdoc.config.ts
+git commit -m "chore: 添加日语支持"
+git push
+```
+
+**添加新语言：**
+
+```bash
+git add docs/ja/ ezdoc.config.ts
+git commit -m "feat: 添加日语文档支持"
+git push
+```
+
+---
+
+## 部署到 GitHub Pages
+
+这是默认的部署方式，推送到 `main` 分支即自动触发。
+
+### 前置配置
+
+1. 进入 GitHub 仓库 → **Settings** → **Pages**
+2. Source 选择 **GitHub Actions**
+
+### 工作原理
+
+项目内置了 `.github/workflows/deploy-pages.yml`，推送到 `main` 分支时自动执行：
+
+```text
+检查 ezdoc.config.ts 中 target 是否为 "github" 或 "both"
+  ↓ 是
+pnpm install → pnpm build (EZDOC_BASE_PATH=/ezdoc) → 上传到 GitHub Pages
+```
+
+### 配置
+
+```ts
+// ezdoc.config.ts
+deploy: {
+  target: "github",    // 启用 GitHub Pages 部署
+}
+```
+
+<Callout type="info" title="basePath">
+  CI 中的 `EZDOC_BASE_PATH` 在 `.github/workflows/deploy-pages.yml` 中配置。如果你的仓库名不是 `ezdoc`，需要修改该文件中的 `EZDOC_BASE_PATH: /ezdoc` 为你的仓库名。
+</Callout>
+
+---
+
+## 部署到自有服务器
+
+通过 rsync + SSH 将构建产物同步到你的服务器。
+
+### 前置配置
+
+1. 在 GitHub 仓库 → **Settings** → **Secrets and variables** → **Actions** 中添加：
+
+| Secret | 说明 | 示例 |
+|--------|------|------|
+| `SERVER_HOST` | 服务器 IP 或域名 | `123.45.67.89` |
+| `SERVER_PORT` | SSH 端口 | `22` |
+| `SERVER_USER` | SSH 用户名 | `root` |
+| `SERVER_SSH_KEY` | SSH 私钥（完整内容） | `-----BEGIN OPENSSH PRIVATE KEY-----...` |
+
+2. 确保服务器上的目标目录存在且有写权限。
+
+### 配置
+
+```ts
+// ezdoc.config.ts
+deploy: {
+  target: "server",
+  server: {
+    host: "your-server.com",
+    port: 22,
+    user: "root",
+    path: "/var/www/docs",
+  },
+}
+```
+
+### 工作原理
+
+项目内置了 `.github/workflows/deploy-server.yml`，推送到 `main` 分支时自动执行：
+
+```text
+检查 ezdoc.config.ts 中 target 是否为 "server" 或 "both"
+  ↓ 是
+pnpm install → pnpm build → rsync -avzr --delete out/ → 服务器目标目录
+```
+
+<Callout type="warning" title="--delete 标志">
+  rsync 使用了 `--delete` 标志，会删除服务器目标目录中不存在于构建产物中的文件。确保 `server.path` 是专门用于文档站点的目录。
+</Callout>
+
+---
+
+## 同时部署
+
+可以同时部署到 GitHub Pages 和自有服务器：
+
+```ts
+deploy: {
+  target: "both",
+  server: {
+    host: "your-server.com",
+    port: 22,
+    user: "root",
+    path: "/var/www/docs",
+  },
+}
+```
+
+两个 workflow 会并行执行，互不影响。GitHub Pages 构建会自动加上 `EZDOC_BASE_PATH`，服务器构建默认不加（部署在根路径）。
+
+---
+
+## 一键部署
+
+使用 CLI 命令一键构建并部署：
+
+```bash
+pnpm ezdoc deploy
+```
+
+根据 `deploy.target` 自动选择部署方式（GitHub Pages / 服务器 / 两者兼有）。
+
+### 初始化 CI 配置
+
+使用 `init-deploy` 自动生成 GitHub Actions workflow 文件：
+
+```bash
+# GitHub Pages 部署
+pnpm ezdoc init-deploy github
+
+# 服务器部署
+pnpm ezdoc init-deploy server
+```
+
+更多 CLI 命令详见 [CLI 命令参考](/docs/zh/guide/cli)。
+
+---
+
+## 手动部署
+
+如果不使用 GitHub Actions，也可以手动构建并部署：
+
+### 部署到任意静态托管
+
+```bash
+pnpm ezdoc build
+# out/ 目录下的所有文件上传到你的静态托管服务
+```
+
+### 手动部署到服务器
+
+```bash
+pnpm ezdoc build
+rsync -avzr --delete out/ user@your-server.com:/var/www/docs/
+```
+
+### 部署到其他平台
+
+构建产物是标准的静态文件，可以部署到 Vercel、Netlify、Cloudflare Pages 等任何支持静态站点的平台。只需将 `out/` 目录作为部署源即可。
+
+---
+
+## 构建产物结构
+
+`pnpm build` 完成后，`out/` 目录结构如下：
+
+```text
+out/
+├── index.html                    # 首页
+├── docs/
+│   ├── index.html                # /docs 重定向页
+│   ├── zh/
+│   │   ├── getting-started/
+│   │   │   └── index.html        # /docs/zh/getting-started
+│   │   └── guide/
+│   │       └── configuration/
+│   │           └── index.html    # /docs/zh/guide/configuration
+│   └── en/
+│       └── getting-started/
+│           └── index.html        # /docs/en/getting-started
+├── pagefind/                     # 全文搜索索引
+├── sitemap.xml                   # 站点地图
+└── robots.txt
+```
+
+每个 locale 下的页面都独立生成，`/docs` 页面包含自动重定向到默认语言的逻辑。
+
+---
+
+## 故障排查
+
+### 构建失败
+
+**"Document not found for slug: xxx"**
+
+docs.json 中引用了不存在的文件。检查 `path` 对应的 `.mdx`/`.md` 文件是否存在。
+
+**TypeScript 类型错误**
+
+运行 `pnpm build` 时如果出现类型错误，通常是配置文件类型不匹配。确保 `ezdoc.config.ts` 使用了 `defineConfig` 包装。
+
+### GitHub Pages 未更新
+
+1. 检查 GitHub 仓库 → **Actions** 标签页，确认 workflow 是否触发
+2. 检查 workflow 日志中的错误信息
+3. 确认 Settings → Pages → Source 设置为 **GitHub Actions**
+
+### 搜索不工作
+
+Pagefind 索引在 `pnpm build` 的 postbuild 阶段自动生成。如果搜索不工作：
+
+1. 检查构建日志中是否有 Pagefind 输出
+2. 确认 `out/pagefind/` 目录存在
+3. 本地预览时需要使用 `npx serve out`（`pnpm dev` 不包含 Pagefind 索引）

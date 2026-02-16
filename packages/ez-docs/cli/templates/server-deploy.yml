@@ -1,0 +1,32 @@
+name: Deploy to Server
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - 'ezdoc.config.ts'
+      - 'package.json'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm ezdoc build
+      - name: Deploy via rsync
+        uses: burnett01/rsync-deployments@7
+        with:
+          switches: -avz --delete
+          path: __OUTPUT_DIR__/
+          remote_path: ${{ secrets.DEPLOY_PATH }}
+          remote_host: ${{ secrets.DEPLOY_HOST }}
+          remote_user: ${{ secrets.DEPLOY_USER }}
+          remote_key: ${{ secrets.SSH_PRIVATE_KEY }}
