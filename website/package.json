@@ -7,6 +7,7 @@
   },
   "scripts": {
     "dev": "next dev",
+    "prebuild": "pnpm ezdoc prepare",
     "build": "next build",
     "postbuild": "pagefind --site out",
     "start": "next start",

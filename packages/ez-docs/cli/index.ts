@@ -3,6 +3,7 @@
 const COMMANDS: Record<string, () => Promise<unknown>> = {
   dev: () => import("./dev"),
   build: () => import("./build"),
+  prepare: () => import("./run-prepare"),
   new: () => import("./new-page"),
   check: () => import("./check"),
   deploy: () => import("./deploy"),
@@ -24,6 +25,7 @@ ${BOLD}用法:${RESET}
 ${BOLD}命令:${RESET}
   ${CYAN}dev${RESET}            启动开发服务器
   ${CYAN}build${RESET}          构建静态站点
+  ${CYAN}prepare${RESET}        同步框架路由文件
   ${CYAN}new${RESET} <path>     创建新文档页
   ${CYAN}check${RESET}          校验配置与文档
   ${CYAN}deploy${RESET}         构建并部署
